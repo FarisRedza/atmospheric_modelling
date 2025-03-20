@@ -1,0 +1,3 @@
+[submodule "SatQuMA"]
+	path = SatQuMA
+	url = https://github.com/cnqo-qcomms/SatQuMA.git
