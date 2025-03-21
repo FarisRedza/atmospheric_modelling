@@ -46,23 +46,23 @@ class CRSModel(enum.Enum):
 
 @dataclasses.dataclass
 class MolAtm:
-    atmosphere: Atmosphere = None
+    atmosphere_file: Atmosphere = None
     mol_abs_param: tuple[CKScheme, str] = None
     mol_modify: list = None
     crs_model: tuple[MolID, CRSModel] = None
 
     @property
-    def atmosphere(self) -> str:
-        if getattr(self._atmosphere, 'value', None):
-            return self._atmosphere.value
-        return self._atmosphere
+    def atmosphere_file(self) -> str:
+        if getattr(self._atmosphere_file, 'value', None):
+            return self._atmosphere_file.value
+        return self._atmosphere_file
 
-    @atmosphere.setter
-    def atmosphere(self, value: Atmosphere):
+    @atmosphere_file.setter
+    def atmosphere_file(self, value: Atmosphere):
         if isinstance(value, property):
-            self._atmosphere = None
+            self._atmosphere_file = None
         elif isinstance(value, Atmosphere):
-            self._atmosphere = value
+            self._atmosphere_file = value
         else:
             raise ValueError(f'Invalid atmosphere: {value}')
 
@@ -118,7 +118,7 @@ class MolAtm:
                     value_str = str(value).strip('[]').replace(',','')
                 parameters.append(f'{parameter} {value_str}')
 
-        add_parameter('atmosphere', self.atmosphere)
+        add_parameter('atmosphere_file', f'../data/atmmod/{self.atmosphere_file}.dat')
         add_parameter('mol_abs_param', self.mol_abs_param)
         if self.mol_modify is not None:
                 for i in self.mol_modify:

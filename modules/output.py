@@ -28,7 +28,7 @@ class Output:
     output_quantity: OutputQuantity = None
     output_process: OutputProcess = None
     output_format: OutputFormat = None
-    z_out: ZOut = None
+    zout: ZOut = None
 
     @property
     def output_user(self) -> str:
@@ -89,17 +89,17 @@ class Output:
             raise ValueError(f'Invalid output_format: {value}')
 
     @property
-    def z_out(self) -> str:
-        if getattr(self._z_out, 'value', None):
-            return self._z_out.value
-        return self._z_out
+    def zout(self) -> str:
+        if getattr(self._zout, 'value', None):
+            return self._zout.value
+        return self._zout
 
-    @z_out.setter
-    def z_out(self, value: str):
+    @zout.setter
+    def zout(self, value: str):
         if isinstance(value, property):
-            self._z_out = None
+            self._zout = None
         elif isinstance(value, str):
-            self._z_out = value
+            self._zout = value
         else:
             raise ValueError(f'Invalid z_out: {value}')
 
@@ -114,6 +114,6 @@ class Output:
         add_parameter('output_quantity', f'{self.output_quantity}')
         add_parameter('output_process', f'{self.output_process}')
         add_parameter('output_format', f'{self.output_format}')
-        add_parameter('z_out', f'{self.z_out}')
+        add_parameter('zout', f'{self.zout}')
 
         return '\n'.join(parameters)

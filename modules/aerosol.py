@@ -102,12 +102,12 @@ class Aerosol:
         
     def generate_uvspec_input(self) -> str:
         parameters = []
-        def add_parameter(parameter: str, value: str):
+        def add_parameter(parameter: str, value: str = ''):
             if getattr(self, parameter) is not None:
                 value = value.strip('[]').replace(',','')
                 parameters.append(f'{parameter} {value}')
 
-        add_parameter('aerosol_default', f'{self.aerosol_default}')
+        add_parameter('aerosol_default')
         add_parameter('aerosol_season', f'{self.aerosol_season}')
         add_parameter('aerosol_visibility', f'{self.aerosol_visibility}')
         add_parameter('aerosol_species', f'{self.aerosol_species}')

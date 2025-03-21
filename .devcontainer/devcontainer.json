@@ -28,6 +28,10 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "./scripts/setup-libradtran.sh",
 
+	"containerEnv": {
+		"LIBRADTRANDIR": "/workspaces/atmospheric_modelling/libRadtran-2.0.6"
+	},
+
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
