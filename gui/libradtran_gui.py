@@ -22,11 +22,8 @@ from page_output import Output
 class Settings():
     manually_shown: bool = False
     manually_hidden: bool = False
-    timetagger_started: bool = False
 
 class MainWindow(Adw.ApplicationWindow):
-    timetagger_started = GObject.Property(type=bool, default=False)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_title(title='libRadtran')
@@ -196,10 +193,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.settings.manually_shown= False
         elif width < 550:
             self.settings.manually_hidden= False
-
-    def on_toggle_timetagger(self):
-        self.settings.timetagger_started = not self.settings.timetagger_started
-        self.notify('timetagger-started')
 
     def on_page_changed(self, stack, _):
         self.header_bar_title.set_title(stack.get_visible_child_name())
