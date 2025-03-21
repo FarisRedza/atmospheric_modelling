@@ -1,3 +1,4 @@
 libRadtran-*/
 .venv/
+__pycache__/
 SatQuMA/

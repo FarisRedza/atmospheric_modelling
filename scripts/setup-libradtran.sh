@@ -14,5 +14,4 @@ then
     make
     make check
     cd ..
-    rm libRadtran-${VERSION}.tar
 fi
