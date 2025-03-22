@@ -3,7 +3,7 @@ import enum
 import typing
 import datetime
 
-from modules.units import *
+from .units import *
 
 @dataclasses.dataclass
 class Geometry:

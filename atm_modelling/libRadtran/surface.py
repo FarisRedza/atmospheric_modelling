@@ -2,7 +2,7 @@ import dataclasses
 import enum
 import typing
 
-from modules.units import *
+from .units import *
 
 @dataclasses.dataclass
 class Surface:

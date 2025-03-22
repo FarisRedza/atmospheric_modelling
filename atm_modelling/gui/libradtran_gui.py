@@ -6,17 +6,17 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gio, Adw, GObject
 
-from page_spectral import Spectral
-from page_general_atm import GeneralAtm
-from page_mol_atm import MolAtm
-from page_aerosol import Aerosol
-from page_profile import Profile
-from page_clouds import Clouds
-from page_surface import Surface
-from page_solver import Solver
-from page_monte_carlo import MonteCarlo
-from page_geometry import Geometry
-from page_output import Output
+from atm_modelling.gui.page_spectral import Spectral
+from atm_modelling.gui.page_general_atm import GeneralAtm
+from atm_modelling.gui.page_mol_atm import MolAtm
+from atm_modelling.gui.page_aerosol import Aerosol
+from atm_modelling.gui.page_profile import Profile
+from atm_modelling.gui.page_clouds import Clouds
+from atm_modelling.gui.page_surface import Surface
+from atm_modelling.gui.page_solver import Solver
+from atm_modelling.gui.page_monte_carlo import MonteCarlo
+from atm_modelling.gui.page_geometry import Geometry
+from atm_modelling.gui.page_output import Output
 
 @dataclasses.dataclass
 class Settings():
