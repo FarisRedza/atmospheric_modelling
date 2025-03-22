@@ -82,9 +82,9 @@ class Output(Adw.PreferencesPage):
         settings_group.add(child=output_format_row)
 
         ### select output_format dropdown
-        dropdown_factory = Gtk.SignalListItemFactory.new()
-        dropdown_factory.connect('setup', self.on_dropdown_setup)
-        dropdown_factory.connect('bind', self.on_dropdown_bind)
+        # dropdown_factory = Gtk.SignalListItemFactory.new()
+        # dropdown_factory.connect('setup', self.on_dropdown_setup)
+        # dropdown_factory.connect('bind', self.on_dropdown_bind)
 
         output_format_list = Gtk.StringList()
         for value in [output_format.value for output_format in output.OutputFormat]:
