@@ -12,49 +12,62 @@ elevation = range(0,91,1)
 with open(file='test.csv', mode='w') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['# theta (deg)', '785 nm'])
+    sim = Simulation(
+        aerosol=Aerosol(
+            aerosol_default=True,
+            aerosol_season=AerosolSeason.SPRING_SUMMER,
+            # aerosol_visibility=50,
+            # aerosol_haze=AerosolHaze.RURAL,
+            # aerosol_vulcan=AerosolVulcan.BACKGROUND_AEROSOLS,
+            # aerosol_species_file=AerosolSpecies.CONTINENTAL_CLEAN,
+            # aerosol_species_library=AerosolSpeciesLibrary.OPAC
+        ),
+        general_atm=GeneralAtm(
+            # no_absorption=True,
+            # no_scattering=True,
+            # zout_interpolate=True,
+            # reverse_atmosphere=True
+        ),
+        mol_atm=MolAtm(
+            # atmosphere_file=Atmosphere.MIDLATTITUDESUMMER,
+            # mol_abs_param=(CKScheme.REPTRAN, 'coarse'),
+            # mol_modify=['O3 200 DU', 'H2O 20 MM'],
+            # crs_model=(MolID.RAYLEIGH, CRSModel.BODHAINE)
+        ),
+        geometry=Geometry(
+            # phi=0,
+            # umu=-1,
+            # latitude='N 56.405',
+            # longitude='W 3.183',
+            # time='2025 3 18 13, 5 37.8075'
+        ),
+        surface=Surface(
+            # albedo=0.02,
+        ),
+        spectral=Spectral(
+            wavelength=[785, 785]
+        ),
+        solver=Solver(
+            rte_solver=RTESolver.DISORT
+        ),
+        output=Output(
+            quiet=True,
+            # verbose=True,
+            output_user='lambda edir edn',
+            output_quantity=OutputQuantity.REFLECTIVITY,
+            # output_process=OutputProcess.PER_NM,
+            # zout='0'
+        )
+    )
+    print(sim.generate_uvspec_input())
     for angle in elevation:
         sza = 90 -angle
-        sim = Simulation(
-            aerosol=Aerosol(
-                aerosol_default=False,
-                # aerosol_season=AerosolSeason.SPRING_SUMMER,
-                # aerosol_visibility=50
-            ),
-            mol_atm=MolAtm(
-                # atmosphere_file=Atmosphere.MIDLATTITUDESUMMER,
-                # mol_abs_param=(CKScheme.REPTRAN, 'coarse'),
-                # mol_modify=['O3 200 DU', 'H2O 20 MM'],
-                # crs_model=(MolID.RAYLEIGH, CRSModel.BODHAINE)
-            ),
-            geometry=Geometry(
-                sza=sza,
-                # phi=0,
-                # umu=-1,
-                # latitude='N 56.405',
-                # longitude='W 3.183',
-                # time='2025 3 18 13, 5 37.8075'
-            ),
-            surface=Surface(
-                # albedo=0.02,
-            ),
-            spectral=Spectral(
-                wavelength=[785, 785]
-            ),
-            solver=Solver(
-                # rte_solver=RTESolver.DISORT
-            ),
-            output=Output(
-                output_user='lambda edir edn',
-                output_quantity=OutputQuantity.REFLECTIVITY,
-                # output_process=OutputProcess.PER_NM,
-                # zout='0'
-            )
-        )
+        sim.geometry.sza=sza
         result = run_uvscpec(sim=sim)
-        print(result)
         wavelength, edir, edn, *_ = map(float, result.split())
         writer.writerow([angle, edir])
 
+print(sim)
 print(sim.generate_uvspec_input())
 
 radtran = pd.read_csv('test.csv')

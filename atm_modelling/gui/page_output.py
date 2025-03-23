@@ -16,6 +16,28 @@ class Output(Adw.PreferencesPage):
         settings_group.set_title(title='Settings')
         self.add(settings_group)
 
+        ## quiet row
+        quiet_row = Adw.ActionRow(title='Quiet')
+        settings_group.add(child=quiet_row)
+
+        ### quiet switch
+        quiet_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        quiet_switch.set_active(self.settings.quiet)
+        quiet_switch.connect('activate', self.on_toggle_quiet)
+        quiet_row.add_suffix(widget=quiet_switch)
+        quiet_row.set_activatable_widget(widget=quiet_switch)
+
+        ## verbose row
+        verbose_row = Adw.ActionRow(title='Verbose')
+        settings_group.add(child=verbose_row)
+
+        ### verbose switch
+        verbose_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        verbose_switch.set_active(self.settings.verbose)
+        verbose_switch.connect('activate', self.on_toggle_verbose)
+        verbose_row.add_suffix(widget=verbose_switch)
+        verbose_row.set_activatable_widget(widget=verbose_switch)
+
         ## output_user row
         output_user_row = Adw.ActionRow(title='Output User')
         settings_group.add(child=output_user_row)
@@ -118,6 +140,27 @@ class Output(Adw.PreferencesPage):
             self.on_zout_clear
         )
         zout_row.add_suffix(widget=self.zout_entry)
+
+    def on_toggle_quiet(self, switch):
+        self.settings.quiet = not self.settings.quiet
+
+    def on_dropdown_setup(self, factory, list_item):
+        label = Gtk.Label()
+        label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
+        label.set_xalign(0)
+        label.set_max_width_chars(20)
+        label.set_hexpand(expand=True)
+        list_item.set_child(label)
+
+    def on_dropdown_bind(self, factory, list_item):
+        item = list_item.get_item()
+        label = list_item.get_child()
+
+        if isinstance(item, Gtk.StringObject):
+            label.set_label(item.get_string())
+
+    def on_toggle_verbose(self, switch):
+        self.settings.verbose = not self.settings.verbose
 
     def on_output_user_clear(self, entry, _):
         self.output_user_entry.set_text(text='')

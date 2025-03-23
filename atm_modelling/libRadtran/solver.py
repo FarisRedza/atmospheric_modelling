@@ -14,34 +14,34 @@ class RTESolver(enum.Enum):
     SSS = "sss"
     SSLIDAR = "sslidar"
 
-rte_solver: RTESolver = None
-
 @dataclasses.dataclass
 class Solver:
-    rte_solver: RTESolver = None
+    rte_solver: RTESolver = RTESolver.DISORT
 
-    @property
-    def rte_solver(self) -> str:
-        if getattr(self._rte_solver, 'value', None):
-            return self._rte_solver.value
-        return self._rte_solver
-    
-    @rte_solver.setter
-    def rte_solver(self, value: RTESolver):
-        if isinstance(value, property):
-            self._rte_solver = None
-        elif isinstance(value, RTESolver):
-            self._rte_solver = value
-        else:
-            raise ValueError(f'Invalid rte_solver: {value}')
+    def __post_init__(self):
+        if not isinstance(self.rte_solver, RTESolver):
+            raise ValueError(f'Invalid rte_solver: {self.rte_solver}')
         
     def generate_uvspec_input(self) -> str:
         parameters = []
-        def add_parameter(parameter: str, value: str):
-            if getattr(self, parameter) is not None:
-                value = value.strip('[]').replace(',','')
-                parameters.append(f'{parameter} {value}')
+        def add_parameter(parameter, prefix: str = '', suffix: str = ''):
+            for field in dataclasses.fields(self):
+                if getattr(self, field.name) is parameter:
+                    field_name = field.name
+                    break
 
-        add_parameter('rte_solver', f'{self.rte_solver}')
+            if getattr(self, field_name) is not None:
+                match parameter:
+                    case bool():
+                        if parameter == True:
+                            parameters.append(field_name)
+                    case enum.Enum():
+                        parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
+                    case float() | int():
+                        parameters.append(f'{field_name} {parameter}')
+                    case _:
+                        raise Exception(f'Unknown type {type(parameter)}')
+
+        add_parameter(self.rte_solver)
 
         return '\n'.join(parameters)

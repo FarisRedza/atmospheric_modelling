@@ -3,76 +3,47 @@ import enum
 
 @dataclasses.dataclass
 class GeneralAtm:
-    absorption: bool = None
-    scattering: bool = None
-    zout_interpolate: bool = None
-    reverse_atmosphere: bool = None
+    no_absorption: bool = False
+    no_scattering: bool = False
+    zout_interpolate: bool = False
+    reverse_atmosphere: bool = False
 
-    @property
-    def absorption(self) -> bool:
-        return self._absorption
-    
-    @absorption.setter
-    def absorption(self, value: bool):
-        if isinstance(value, property):
-            self._absorption = None
-        elif isinstance(value, bool):
-            self._absorption = value
-        else:
-            raise ValueError(f'Invalid absorption: {value}')
-
-    @property
-    def scattering(self) -> bool:
-        return self._scattering
-    
-    @scattering.setter
-    def scattering(self, value: bool):
-        if isinstance(value, property):
-            self._scattering = None
-        elif isinstance(value, bool):
-            self._scattering = value
-        else:
-            raise ValueError(f'Invalid scattering: {value}')
-
-    @property
-    def zout_interpolate(self) -> bool:
-        return self._zout_interpolate
-    
-    @zout_interpolate.setter
-    def zout_interpolate(self, value: bool):
-        if isinstance(value, property):
-            self._zout_interpolate = None
-        elif isinstance(value, bool):
-            self._zout_interpolate = value
-        else:
-            raise ValueError(f'Invalid zout_interpolate: {value}')
-
-    @property
-    def reverse_atmosphere(self) -> bool:
-        return self._reverse_atmosphere
-    
-    @reverse_atmosphere.setter
-    def reverse_atmosphere(self, value: bool):
-        if isinstance(value, property):
-            self._reverse_atmosphere = None
-        elif isinstance(value, bool):
-            self._reverse_atmosphere = value
-        else:
-            raise ValueError(f'Invalid reverse_atmosphere: {value}')
-
+    def __post_init__(self):
+        if not isinstance(self.no_absorption, bool):
+            raise ValueError(f'Invalid no_absorption: {self.no_absorption}')
+        
+        if not isinstance(self.no_scattering, bool):
+            raise ValueError(f'Invalid no_scattering: {self.no_scattering}')
+        
+        if not isinstance(self.zout_interpolate, bool):
+            raise ValueError(f'Invalid zout_interpolate: {self.zout_interpolate}')
+        
+        if not isinstance(self.reverse_atmosphere, bool):
+            raise ValueError(f'Invalid reverse_atmosphere: {self.reverse_atmosphere}')
+        
     def generate_uvspec_input(self) -> str:
         parameters = []
-        def add_parameter(parameter: str, value: str = None):
-            if getattr(self, parameter) is not None:
-                if value == None:
-                    parameters.append(parameter)
-                else:
-                    value = value.strip('[]').replace(',','')
-                    parameters.append(f'{parameter} {value}')
+        def add_parameter(parameter, prefix: str = '', suffix: str = ''):
+            for field in dataclasses.fields(self):
+                if getattr(self, field.name) is parameter:
+                    field_name = field.name
+                    break
 
-        add_parameter('absorption')
-        add_parameter('scattering')
-        add_parameter('zout_interpolate')
-        add_parameter('reverse_atmosphere')
+            if getattr(self, field_name) is not None:
+                match parameter:
+                    case bool():
+                        if parameter == True:
+                            parameters.append(field_name)
+                    case enum.Enum():
+                        parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
+                    case float() | int():
+                        parameters.append(f'{field_name} {parameter}')
+                    case _:
+                        raise Exception(f'Unknown type {type(parameter)}')
+
+        add_parameter(self.no_absorption)
+        add_parameter(self.no_scattering)
+        add_parameter(self.zout_interpolate)
+        add_parameter(self.reverse_atmosphere)
 
         return '\n'.join(parameters)

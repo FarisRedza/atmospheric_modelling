@@ -22,6 +22,7 @@ class GeneralAtm(Adw.PreferencesPage):
 
         ### absorption switch
         absorption_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        absorption_switch.set_active(not self.settings.no_absorption)
         absorption_switch.connect('activate', self.on_toggle_absorption)
         absorption_row.add_suffix(widget=absorption_switch)
         absorption_row.set_activatable_widget(widget=absorption_switch)
@@ -32,6 +33,7 @@ class GeneralAtm(Adw.PreferencesPage):
 
         ### scattering switch
         scattering_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        scattering_switch.set_active(not self.settings.no_scattering)
         scattering_switch.connect('activate', self.on_toggle_scattering)
         scattering_row.add_suffix(widget=scattering_switch)
         scattering_row.set_activatable_widget(widget=scattering_switch)
@@ -42,6 +44,7 @@ class GeneralAtm(Adw.PreferencesPage):
 
         ### zout_interpolate switch
         zout_interpolate_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        zout_interpolate_switch.set_active(self.settings.zout_interpolate)
         zout_interpolate_switch.connect('activate', self.on_toggle_zout_interpolate)
         zout_interpolate_row.add_suffix(widget=zout_interpolate_switch)
         zout_interpolate_row.set_activatable_widget(widget=zout_interpolate_switch)
@@ -52,15 +55,16 @@ class GeneralAtm(Adw.PreferencesPage):
 
         ### reverse_atmosphere switch
         reverse_atmosphere_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        reverse_atmosphere_switch.set_active(self.settings.reverse_atmosphere)
         reverse_atmosphere_switch.connect('activate', self.on_toggle_reverse_atmosphere)
         reverse_atmosphere_row.add_suffix(widget=reverse_atmosphere_switch)
         reverse_atmosphere_row.set_activatable_widget(widget=reverse_atmosphere_switch)
 
     def on_toggle_absorption(self, switch):
-        self.settings.absorption = not self.settings.absorption
+        self.settings.no_absorption = not self.settings.no_absorption
 
     def on_toggle_scattering(self, switch):
-        self.settings.scattering = not self.settings.scattering
+        self.settings.no_scattering = not self.settings.no_scattering
 
     def on_toggle_zout_interpolate(self, switch):
         self.settings.zout_interpolate = not self.settings.zout_interpolate

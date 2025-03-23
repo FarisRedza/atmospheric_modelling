@@ -3,10 +3,13 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Pango, GLib
 
+from atm_modelling.libRadtran import solver
+
 class Solver(Adw.PreferencesPage):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
+        self.settings = solver.Solver()
 
         # settings group
         settings_group = Adw.PreferencesGroup()
@@ -22,11 +25,15 @@ class Solver(Adw.PreferencesPage):
         dropdown_factory.connect('setup', self.on_dropdown_setup)
         dropdown_factory.connect('bind', self.on_dropdown_bind)
 
-        select_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_dropdown.set_factory(factory=dropdown_factory)
-        select_dropdown.connect('notify::selected', self.on_rte_solver_select)
-        # select_dropdown.props.model = device_list
-        rte_solver_row.add_suffix(widget=select_dropdown)
+        rte_solver_list = Gtk.StringList()
+        for value in [rte_solver.value for rte_solver in solver.RTESolver]:
+            rte_solver_list.append(str(value))
+
+        select_rte_solver_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
+        select_rte_solver_dropdown.set_factory(factory=dropdown_factory)
+        select_rte_solver_dropdown.connect('notify::selected', self.on_rte_solver_select)
+        select_rte_solver_dropdown.props.model = rte_solver_list
+        rte_solver_row.add_suffix(widget=select_rte_solver_dropdown)
 
     def on_dropdown_setup(self, factory, list_item):
         label = Gtk.Label()
@@ -44,4 +51,5 @@ class Solver(Adw.PreferencesPage):
             label.set_label(item.get_string())
 
     def on_rte_solver_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.selected_rte_solver = dropdown.get_selected()
+        print(self.selected_rte_solver)

@@ -22,6 +22,7 @@ class Aerosol(Adw.PreferencesPage):
 
         ### default switch
         default_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        default_switch.set_active(self.settings.aerosol_default)
         default_switch.connect('activate', self.on_toggle_default)
         default_row.add_suffix(widget=default_switch)
         default_row.set_activatable_widget(widget=default_switch)
@@ -67,6 +68,44 @@ class Aerosol(Adw.PreferencesPage):
             self.on_visibility_clear
         )
         visibility_row.add_suffix(widget=self.visibility_entry)
+
+        ## haze row
+        haze_row = Adw.ActionRow(title='Haze')
+        settings_group.add(child=haze_row)
+
+        ### select haze_row dropdown
+        # dropdown_factory = Gtk.SignalListItemFactory.new()
+        # dropdown_factory.connect('setup', self.on_dropdown_setup)
+        # dropdown_factory.connect('bind', self.on_dropdown_bind)
+
+        haze_list = Gtk.StringList()
+        for value in [haze.value for haze in aerosol.AerosolHaze]:
+            haze_list.append(str(value))
+
+        select_haze_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
+        select_haze_dropdown.set_factory(factory=dropdown_factory)
+        select_haze_dropdown.connect('notify::selected', self.on_haze_select)
+        select_haze_dropdown.props.model = haze_list
+        haze_row.add_suffix(widget=select_haze_dropdown)
+
+        ## vulcan row
+        vulcan_row = Adw.ActionRow(title='Vulcan')
+        settings_group.add(child=vulcan_row)
+
+        ### select vulcan dropdown
+        # dropdown_factory = Gtk.SignalListItemFactory.new()
+        # dropdown_factory.connect('setup', self.on_dropdown_setup)
+        # dropdown_factory.connect('bind', self.on_dropdown_bind)
+
+        vulcan_list = Gtk.StringList()
+        for value in [vulcan.value for vulcan in aerosol.AerosolVulcan]:
+            vulcan_list.append(str(value))
+
+        select_vulcan_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
+        select_vulcan_dropdown.set_factory(factory=dropdown_factory)
+        select_vulcan_dropdown.connect('notify::selected', self.on_vulcan_select)
+        select_vulcan_dropdown.props.model = vulcan_list
+        vulcan_row.add_suffix(widget=select_vulcan_dropdown)
 
         ## species row
         species_row = Adw.ActionRow(title='Species')
@@ -125,13 +164,19 @@ class Aerosol(Adw.PreferencesPage):
             label.set_label(item.get_string())
 
     def on_season_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.selected_season = dropdown.get_selected()
 
     def on_visibility_clear(self, entry, _):
         self.visibility_entry.set_text(text='')
 
+    def on_haze_select(self, dropdown, _):
+        self.settings.aerosol_haze = dropdown.get_selected()
+
+    def on_vulcan_select(self, dropdown, _):
+        self.settings.aerosol_vulcan = dropdown.get_selected()
+
     def on_species_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.settings.aerosol_species_file = dropdown.get_selected()
 
     def on_species_library_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.settings.aerosol_species_library = dropdown.get_selected()

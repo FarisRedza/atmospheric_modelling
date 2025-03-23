@@ -146,10 +146,10 @@ class MolAtm(Adw.PreferencesPage):
             label.set_label(item.get_string())
 
     def on_atmosphere_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.selected_atmosphere = dropdown.get_selected()
 
     def on_ck_scheme_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.selected_ck_scheme = dropdown.get_selected()
 
     def on_mol_abs_param_str_clear(self, entry, _):
         self.mol_abs_param_str_entry.set_text(text='')
@@ -158,7 +158,7 @@ class MolAtm(Adw.PreferencesPage):
         self.mol_modify_entry.set_text(text='')
 
     def on_mol_id_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.selected_mol_id = dropdown.get_selected()
 
     def on_crs_model_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.selected_crs_model = dropdown.get_selected()

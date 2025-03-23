@@ -1,5 +1,8 @@
 import dataclasses
 import enum
+import typing
+
+from .units import *
 
 class Source(enum.Enum):
     SOLAR = 'solar'
@@ -7,45 +10,39 @@ class Source(enum.Enum):
 
 @dataclasses.dataclass
 class Spectral:
-    wavelength: list = None
+    wavelength: typing.List[nm] = None
     source: Source = None
 
-    @property
-    def wavelength(self) -> list:
-        return self._wavelength
-    
-    @wavelength.setter
-    def wavelength(self, value: list):
-        if isinstance(value, property):
-            self._wavelength = None
-        elif isinstance(value, list):
-            self._wavelength = value
-        else:
-            raise ValueError(f'Invalid wavelength: {value}')
-
-    @property
-    def source(self) -> str:
-        if getattr(self._source, 'value', None):
-            return self._source.value
-        return self._source
-    
-    @source.setter
-    def source(self, value: Source):
-        if isinstance(value, property):
-            self._source = None
-        elif not isinstance(value, Source):
-            raise ValueError(f'Invalid source: {value}')
-        else:
-            self._source = value
+    def __post_init__(self):  
+        if not isinstance(self.wavelength, typing.Union[list, None]):
+            raise ValueError(f'Invalid wavelength: {self.wavelength}')
+      
+        if not isinstance(self.source, typing.Union[Source, None]):
+            raise ValueError(f'Invalid source: {self.source}')
 
     def generate_uvspec_input(self) -> str:
         parameters = []
-        def add_parameter(parameter: str, value: str):
-            if getattr(self, parameter) is not None:
-                value = value.strip('[]').replace(',','')
-                parameters.append(f'{parameter} {value}')
+        def add_parameter(parameter, prefix: str = '', suffix: str = ''):
+            for field in dataclasses.fields(self):
+                if getattr(self, field.name) is parameter:
+                    field_name = field.name
+                    break
 
-        add_parameter('wavelength', f'{self.wavelength}')
-        add_parameter('source', f'{self.source}')
+            if getattr(self, field_name) is not None:
+                match parameter:
+                    case bool():
+                        if parameter == True:
+                            parameters.append(field_name)
+                    case enum.Enum():
+                        parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
+                    case float() | int():
+                        parameters.append(f'{field_name} {parameter}')
+                    case list():
+                        parameters.append(f'{field_name} {" ".join([str(i) for i in parameter])}')
+                    case _:
+                        raise Exception(f'Unknown type {type(parameter)}')
+
+        add_parameter(self.wavelength)
+        add_parameter(self.source)
 
         return '\n'.join(parameters)

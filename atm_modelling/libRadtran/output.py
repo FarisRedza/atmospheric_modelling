@@ -1,5 +1,6 @@
 import dataclasses
 import enum
+import typing
 
 class OutputQuantity(enum.Enum):
     TRANSMITTANCE = "transmittance"
@@ -24,96 +25,66 @@ class ZOut(enum.Enum):
 
 @dataclasses.dataclass
 class Output:
+    quiet: bool = False
+    verbose: bool = False
     output_user: str = None
     output_quantity: OutputQuantity = None
     output_process: OutputProcess = None
     output_format: OutputFormat = None
     zout: ZOut = None
 
-    @property
-    def output_user(self) -> str:
-        return self._output_user
-    
-    @output_user.setter
-    def output_user(self, value: str):
-        if isinstance(value, property):
-            self._output_user = None
-        elif isinstance(value, str):
-            self._output_user = value
-        else:
-            raise ValueError(f'Invalid output_user: {value}')
+    def __post_init__(self):
+        if not isinstance(self.quiet, bool):
+            raise ValueError(f'Invalid quiet: {self.quiet}')
 
-    @property
-    def output_quantity(self) -> str:
-        if getattr(self._output_quantity, 'value', None):
-            return self._output_quantity.value
-        return self._output_quantity
-    
-    @output_quantity.setter
-    def output_quantity(self, value: OutputQuantity):
-        if isinstance(value, property):
-            self._output_quantity = None
-        elif isinstance(value, OutputQuantity):
-            self._output_quantity = value
-        else:
-            raise ValueError(f'Invalid output_quantity: {value}')
+        if not isinstance(self.verbose, bool):
+            raise ValueError(f'Invalid verbose: {self.verbose}')
 
-    @property
-    def output_process(self) -> str:
-        if getattr(self._output_process, 'value', None):
-            return self._output_process.value
-        return self._output_process
-    
-    @output_process.setter
-    def output_process(self, value: OutputProcess):
-        if isinstance(value, property):
-            self._output_process = None
-        elif isinstance(value, OutputProcess):
-            self._output_process = value
-        else:
-            raise ValueError(f'Invalid output_process: {value}')
-
-    @property
-    def output_format(self) -> str:
-        if getattr(self._output_format, 'value', None):
-            return self._output_format.value
-        return self._output_format
-    
-    @output_format.setter
-    def output_format(self, value: OutputFormat):
-        if isinstance(value, property):
-            self._output_format = None
-        elif isinstance(value, OutputFormat):
-            self._output_format = value
-        else:
-            raise ValueError(f'Invalid output_format: {value}')
-
-    @property
-    def zout(self) -> str:
-        if getattr(self._zout, 'value', None):
-            return self._zout.value
-        return self._zout
-
-    @zout.setter
-    def zout(self, value: str):
-        if isinstance(value, property):
-            self._zout = None
-        elif isinstance(value, str):
-            self._zout = value
-        else:
-            raise ValueError(f'Invalid z_out: {value}')
+        if not isinstance(self.output_user, typing.Union[str, None]):
+            raise ValueError(f'Invalid output_user: {self.output_user}')
+      
+        if not isinstance(self.output_quantity, typing.Union[OutputQuantity, None]):
+            raise ValueError(f'Invalid output_quantity: {self.output_quantity}')
+        
+        if not isinstance(self.output_process, typing.Union[OutputProcess, None]):
+            raise ValueError(f'Invalid output_process: {self.output_process}')
+        
+        if not isinstance(self.output_format, typing.Union[OutputFormat, None]):
+            raise ValueError(f'Invalid output_format: {self.output_format}')
+        
+        if not isinstance(self.zout, typing.Union[ZOut, None]):
+            raise ValueError(f'Invalid zout: {self.zout}')
 
     def generate_uvspec_input(self) -> str:
         parameters = []
-        def add_parameter(parameter: str, value: str):
-            if getattr(self, parameter) is not None:
-                value = value.strip('[]').replace(',','')
-                parameters.append(f'{parameter} {value}')
+        def add_parameter(parameter, prefix: str = '', suffix: str = ''):
+            for field in dataclasses.fields(self):
+                if getattr(self, field.name) is parameter:
+                    field_name = field.name
+                    break
 
-        add_parameter('output_user', f'{self.output_user}')
-        add_parameter('output_quantity', f'{self.output_quantity}')
-        add_parameter('output_process', f'{self.output_process}')
-        add_parameter('output_format', f'{self.output_format}')
-        add_parameter('zout', f'{self.zout}')
+            if getattr(self, field_name) is not None:
+                match parameter:
+                    case str():
+                        parameters.append(f'{field_name} {parameter}')
+                    case bool():
+                        if parameter == True:
+                            parameters.append(field_name)
+                    case enum.Enum():
+                        parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
+                    case float() | int():
+                        parameters.append(f'{field_name} {parameter}')
+                    case list():
+                        parameters.append(f'{field_name} {" ".join([str(i) for i in parameter])}')
+                    case _:
+                        raise Exception(f'Unknown type {type(parameter)}')
+
+        add_parameter(self.quiet)
+        add_parameter(self.verbose)
+        add_parameter(self.output_user)
+        add_parameter(self.output_quantity)
+        add_parameter(self.output_process)
+        add_parameter(self.output_format)
+        add_parameter(self.zout)
 
         return '\n'.join(parameters)

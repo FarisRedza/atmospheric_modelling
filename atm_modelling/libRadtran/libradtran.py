@@ -31,7 +31,7 @@ class Simulation:
     def generate_uvspec_input(self) -> str:
         parameters = [
             self.spectral.generate_uvspec_input(),
-            # self.general_atm.generate_uvspec_input()
+            self.general_atm.generate_uvspec_input(),
             self.mol_atm.generate_uvspec_input(),
             self.aerosol.generate_uvspec_input(),
             # self.profile.generate_uvspec_input(),
