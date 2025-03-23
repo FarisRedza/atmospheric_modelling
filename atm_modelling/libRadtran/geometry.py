@@ -16,124 +16,58 @@ class Geometry:
     longitude: str = None
     time: str = None
 
-    @property
-    def sza(self) -> degrees:
-        return self._sza
-    
-    @sza.setter
-    def sza(self, value: degrees):
-        if isinstance(value, property):
-            self._sza = None
-        elif isinstance(value, typing.Union[float, int]):
-            self._sza = value
-        else:
-            raise ValueError(f'Invalid sza: {value}')
-
-    @property
-    def phi0(self) -> float:
-        return self._phi0
-    
-    @phi0.setter
-    def phi0(self, value: float):
-        if isinstance(value, property):
-            self._phi0 = None
-        elif isinstance(value, typing.Union[float, int]):
-            self._phi0 = value
-        else:
-            raise ValueError(f'Invalid phi0: {value}')
-
-    @property
-    def phi(self) -> float:
-        return self._phi
-    
-    @phi.setter
-    def phi(self, value: float):
-        if isinstance(value, property):
-            self._phi = None
-        elif isinstance(value, typing.Union[float, int]):
-            self._phi = value
-        else:
-            raise ValueError(f'Invalid phi: {value}')
-
-    @property
-    def umu(self) -> float:
-        return self._umu
-    
-    @umu.setter
-    def umu(self, value: float):
-        if isinstance(value, property):
-            self._umu = None
-        elif isinstance(value, typing.Union[float, int]):
-            self._umu = value
-        else:
-            raise ValueError(f'Invalid umu: {value}')
-
-    @property
-    def day_of_year(self) -> float:
-        return self._day_of_year
-    
-    @day_of_year.setter
-    def day_of_year(self, value: float):
-        if isinstance(value, property):
-            self._day_of_year = None
-        elif isinstance(value, typing.Union[float, int]):
-            self._day_of_year = value
-        else:
-            raise ValueError(f'Invalid day_of_year: {value}')
-
-    @property
-    def latitude(self) -> str:
-        return self._latitude
-    
-    @latitude.setter
-    def latitude(self, value: str):
-        if isinstance(value, property):
-            self._latitude = None
-        elif isinstance(value, str):
-            self._latitude = value
-        else:
-            raise ValueError(f'Invalid latitude: {value}')
-
-    @property
-    def longitude(self) -> str:
-        return self._longitude
-    
-    @longitude.setter
-    def longitude(self, value: str):
-        if isinstance(value, property):
-            self._longitude = None
-        elif isinstance(value, str):
-            self._longitude = value
-        else:
-            raise ValueError(f'Invalid longitude: {value}')
-
-    @property
-    def time(self) -> datetime.datetime:
-        return self._time
-    
-    @time.setter
-    def time(self, value: str):
-        if isinstance(value, property):
-            self._time = None
-        elif isinstance(value, str):
-            self._time = value
-        else:
-            raise ValueError(f'Invalid time: {value}')
+    def __post_init__(self):
+        if not isinstance(self.sza, typing.Union[float, int, None]):
+            raise ValueError(f'Invalid sza: {self.sza}')
+        
+        if not isinstance(self.phi0, typing.Union[float, int, None]):
+            raise ValueError(f'Invalid phi0: {self.phi0}')
+        
+        if not isinstance(self.phi, typing.Union[float, int, None]):
+            raise ValueError(f'Invalid phi: {self.phi}')
+        
+        if not isinstance(self.umu, typing.Union[float, int, None]):
+            raise ValueError(f'Invalid umu: {self.umu}')
+        
+        if not isinstance(self.day_of_year, typing.Union[float, int, None]):
+            raise ValueError(f'Invalid day_of_year: {self.day_of_year}')
+        
+        if not isinstance(self.latitude, typing.Union[str, None]):
+            raise ValueError(f'Invalid latitude: {self.latitude}')
+        
+        if not isinstance(self.longitude, typing.Union[str, None]):
+            raise ValueError(f'Invalid longitude: {self.longitude}')
+        
+        if not isinstance(self.time, typing.Union[str, None]):
+            raise ValueError(f'Invalid time: {self.time}')
         
     def generate_uvspec_input(self) -> str:
         parameters = []
-        def add_parameter(parameter: str, value: str):
-            if getattr(self, parameter) is not None:
-                value = value.strip('[]').replace(',','')
-                parameters.append(f'{parameter} {value}')
+        def add_parameter(parameter, prefix: str = '', suffix: str = ''):
+            for field in dataclasses.fields(self):
+                if getattr(self, field.name) is parameter:
+                    field_name = field.name
+                    break
 
-        add_parameter('sza', f'{self.sza}')
-        add_parameter('phi0', f'{self.phi0}')
-        add_parameter('phi', f'{self.phi}')
-        add_parameter('umu', f'{self.umu}')
-        add_parameter('day_of_year', f'{self.day_of_year}')
-        add_parameter('latitude', f'{self.latitude}')
-        add_parameter('longitude', f'{self.longitude}')
-        add_parameter('time', f'{self.time}')
+            if getattr(self, field_name) is not None:
+                match parameter:
+                    case bool():
+                        if parameter == True:
+                            parameters.append(field_name)
+                    case enum.Enum():
+                        parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
+                    case float() | int():
+                        parameters.append(f'{field_name} {parameter}')
+                    case _:
+                        raise Exception(f'Unknown type {type(parameter)}')
+
+        add_parameter(self.sza)
+        add_parameter(self.phi0)
+        add_parameter(self.phi)
+        add_parameter(self.umu)
+        add_parameter(self.day_of_year)
+        add_parameter(self.latitude)
+        add_parameter(self.longitude)
+        add_parameter(self.time)
 
         return '\n'.join(parameters)

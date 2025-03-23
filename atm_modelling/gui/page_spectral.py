@@ -48,14 +48,15 @@ class Spectral(Adw.PreferencesPage):
         dropdown_factory.connect('setup', self.on_dropdown_setup)
         dropdown_factory.connect('bind', self.on_dropdown_bind)
 
-        source_list = Gtk.StringList()
-        for value in [source.value for source in spectral.Source]:
-            source_list.append(value)
+        self.source_list = [source.value for source in spectral.Source]
+        source_string_list = Gtk.StringList()
+        for value in self.source_list:
+            source_string_list.append(value)
 
         select_source_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
         select_source_dropdown.set_factory(factory=dropdown_factory)
         select_source_dropdown.connect('notify::selected', self.on_source_select)
-        select_source_dropdown.props.model = source_list
+        select_source_dropdown.props.model = source_string_list
         source_row.add_suffix(widget=select_source_dropdown)
 
     def on_wavelength_clear(self, entry, _):
@@ -77,4 +78,4 @@ class Spectral(Adw.PreferencesPage):
             label.set_label(item.get_string())
 
     def on_source_select(self, dropdown, _):
-        self.selected_device = dropdown.get_selected()
+        self.settings.source = self.source_list[dropdown.get_selected()]

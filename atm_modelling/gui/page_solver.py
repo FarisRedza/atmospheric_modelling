@@ -52,4 +52,3 @@ class Solver(Adw.PreferencesPage):
 
     def on_rte_solver_select(self, dropdown, _):
         self.selected_rte_solver = dropdown.get_selected()
-        print(self.selected_rte_solver)

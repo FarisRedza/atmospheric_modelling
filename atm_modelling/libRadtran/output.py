@@ -3,8 +3,9 @@ import enum
 import typing
 
 class OutputQuantity(enum.Enum):
-    TRANSMITTANCE = "transmittance"
+    BRIGHTNESS = "brightness"
     REFLECTIVITY = "reflectivity"
+    TRANSMITTANCE = "transmittance"
 
 class OutputProcess(enum.Enum):
     INTEGRATE = 'integrate'
@@ -21,7 +22,7 @@ class OutputFormat(enum.Enum):
     FLEXSTOR = 'flexstor'
 
 class ZOut(enum.Enum):
-    TOP = "TOP"
+    TOA = "TOA"
 
 @dataclasses.dataclass
 class Output:
@@ -30,7 +31,7 @@ class Output:
     output_user: str = None
     output_quantity: OutputQuantity = None
     output_process: OutputProcess = None
-    output_format: OutputFormat = None
+    output_format: OutputFormat = OutputFormat.ASCII
     zout: ZOut = None
 
     def __post_init__(self):

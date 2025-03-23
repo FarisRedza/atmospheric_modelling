@@ -22,7 +22,7 @@ class Surface(Adw.PreferencesPage):
 
         ### altitude entry
         self.altitude_entry = Gtk.Entry(
-            placeholder_text='altitude',
+            placeholder_text=surface.Surface.__dataclass_fields__['altitude'].default,
             valign=Gtk.Align.CENTER
         )
         self.altitude_entry.set_icon_from_icon_name(
@@ -45,7 +45,7 @@ class Surface(Adw.PreferencesPage):
 
         ### albedo entry
         self.albedo_entry = Gtk.Entry(
-            placeholder_text='albedo',
+            placeholder_text=surface.Surface.__dataclass_fields__['albedo'].default,
             valign=Gtk.Align.CENTER
         )
         self.albedo_entry.set_icon_from_icon_name(

@@ -36,14 +36,15 @@ class Aerosol(Adw.PreferencesPage):
         dropdown_factory.connect('setup', self.on_dropdown_setup)
         dropdown_factory.connect('bind', self.on_dropdown_bind)
 
-        season_list = Gtk.StringList()
-        for value in [season.value for season in aerosol.AerosolSeason]:
-            season_list.append(str(value))
+        self.season_list = [season.value for season in aerosol.AerosolSeason]
+        season_string_list = Gtk.StringList()
+        for value in self.season_list:
+            season_string_list.append(str(value))
 
         select_season_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
         select_season_dropdown.set_factory(factory=dropdown_factory)
         select_season_dropdown.connect('notify::selected', self.on_season_select)
-        select_season_dropdown.props.model = season_list
+        select_season_dropdown.props.model = season_string_list
         season_row.add_suffix(widget=select_season_dropdown)
 
         ## visibility row
@@ -52,7 +53,7 @@ class Aerosol(Adw.PreferencesPage):
 
         ### visibility entry
         self.visibility_entry = Gtk.Entry(
-            placeholder_text='Visibility',
+            # placeholder_text=aerosol.Aerosol.__dataclass_fields__['aerosol_visibility'].default,
             valign=Gtk.Align.CENTER
         )
         self.visibility_entry.set_icon_from_icon_name(
@@ -74,18 +75,15 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=haze_row)
 
         ### select haze_row dropdown
-        # dropdown_factory = Gtk.SignalListItemFactory.new()
-        # dropdown_factory.connect('setup', self.on_dropdown_setup)
-        # dropdown_factory.connect('bind', self.on_dropdown_bind)
-
-        haze_list = Gtk.StringList()
-        for value in [haze.value for haze in aerosol.AerosolHaze]:
-            haze_list.append(str(value))
+        self.haze_list = [haze.value for haze in aerosol.AerosolHaze]
+        haze_string_list = Gtk.StringList()
+        for value in self.haze_list:
+            haze_string_list.append(str(value))
 
         select_haze_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
         select_haze_dropdown.set_factory(factory=dropdown_factory)
         select_haze_dropdown.connect('notify::selected', self.on_haze_select)
-        select_haze_dropdown.props.model = haze_list
+        select_haze_dropdown.props.model = haze_string_list
         haze_row.add_suffix(widget=select_haze_dropdown)
 
         ## vulcan row
@@ -93,18 +91,15 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=vulcan_row)
 
         ### select vulcan dropdown
-        # dropdown_factory = Gtk.SignalListItemFactory.new()
-        # dropdown_factory.connect('setup', self.on_dropdown_setup)
-        # dropdown_factory.connect('bind', self.on_dropdown_bind)
-
-        vulcan_list = Gtk.StringList()
-        for value in [vulcan.value for vulcan in aerosol.AerosolVulcan]:
-            vulcan_list.append(str(value))
+        self.vulcan_list = [vulcan.value for vulcan in aerosol.AerosolVulcan]
+        vulcan_string_list = Gtk.StringList()
+        for value in self.vulcan_list:
+            vulcan_string_list.append(str(value))
 
         select_vulcan_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
         select_vulcan_dropdown.set_factory(factory=dropdown_factory)
         select_vulcan_dropdown.connect('notify::selected', self.on_vulcan_select)
-        select_vulcan_dropdown.props.model = vulcan_list
+        select_vulcan_dropdown.props.model = vulcan_string_list
         vulcan_row.add_suffix(widget=select_vulcan_dropdown)
 
         ## species row
@@ -112,18 +107,15 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=species_row)
 
         ### select species dropdown
-        # dropdown_factory = Gtk.SignalListItemFactory.new()
-        # dropdown_factory.connect('setup', self.on_dropdown_setup)
-        # dropdown_factory.connect('bind', self.on_dropdown_bind)
-
-        species_list = Gtk.StringList()
-        for value in [species.value for species in aerosol.AerosolSpecies]:
-            species_list.append(value)
+        self.species_list = [species.value for species in aerosol.AerosolSpecies]
+        species_string_list = Gtk.StringList()
+        for value in self.species_list:
+            species_string_list.append(value)
 
         select_species_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
         select_species_dropdown.set_factory(factory=dropdown_factory)
         select_species_dropdown.connect('notify::selected', self.on_species_select)
-        select_species_dropdown.props.model = species_list
+        select_species_dropdown.props.model = species_string_list
         species_row.add_suffix(widget=select_species_dropdown)
 
         ## species_library row
@@ -131,18 +123,15 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=species_library_row)
 
         ### select species_library dropdown
-        # dropdown_factory = Gtk.SignalListItemFactory.new()
-        # dropdown_factory.connect('setup', self.on_dropdown_setup)
-        # dropdown_factory.connect('bind', self.on_dropdown_bind)
-
-        species_library_list = Gtk.StringList()
-        for value in [species_library.value for species_library in aerosol.AerosolSpeciesLibrary]:
-            species_library_list.append(value)
+        self.species_library_list = [species_library.value for species_library in aerosol.AerosolSpeciesLibrary]
+        species_library_string_list = Gtk.StringList()
+        for value in self.species_library_list :
+            species_library_string_list.append(value)
 
         select_species_library_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
         select_species_library_dropdown.set_factory(factory=dropdown_factory)
         select_species_library_dropdown.connect('notify::selected', self.on_species_library_select)
-        select_species_library_dropdown.props.model = species_library_list
+        select_species_library_dropdown.props.model = species_library_string_list
         species_library_row.add_suffix(widget=select_species_library_dropdown)
 
     def on_toggle_default(self, switch):
@@ -164,19 +153,19 @@ class Aerosol(Adw.PreferencesPage):
             label.set_label(item.get_string())
 
     def on_season_select(self, dropdown, _):
-        self.selected_season = dropdown.get_selected()
+        self.settings.aerosol_season = self.season_list[dropdown.get_selected()]
 
     def on_visibility_clear(self, entry, _):
         self.visibility_entry.set_text(text='')
 
     def on_haze_select(self, dropdown, _):
-        self.settings.aerosol_haze = dropdown.get_selected()
+        self.settings.aerosol_haze = self.haze_list[dropdown.get_selected()]
 
     def on_vulcan_select(self, dropdown, _):
-        self.settings.aerosol_vulcan = dropdown.get_selected()
+        self.settings.aerosol_vulcan = self.vulcan_list[dropdown.get_selected()]
 
     def on_species_select(self, dropdown, _):
-        self.settings.aerosol_species_file = dropdown.get_selected()
+        self.settings.aerosol_species_file = self.species_list[dropdown.get_selected()]
 
     def on_species_library_select(self, dropdown, _):
-        self.settings.aerosol_species_library = dropdown.get_selected()
+        self.settings.aerosol_species_library = self.species_library_list[dropdown.get_selected()]
