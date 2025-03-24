@@ -10,10 +10,10 @@ from atm_modelling.libRadtran.libradtran import *
 matplotlib.use('GTK4Agg')
 
 elevation = range(0,91,1)
-with open(file='test.csv', mode='w') as csvfile:
+with open(file='downlink.csv', mode='w') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['# theta (deg)', '785 nm'])
-    sim = Simulation(
+    downlink_sim = Simulation(
         aerosol=Aerosol(
             aerosol_default=True,
             # aerosol_season=AerosolSeason.SPRING_SUMMER,
@@ -61,18 +61,18 @@ with open(file='test.csv', mode='w') as csvfile:
             # zout=ZOut.TOA
         )
     )
-    print(sim.generate_uvspec_input())
+    print(downlink_sim.generate_uvspec_input())
     for angle in elevation:
-        sza = 90 -angle
-        sim.geometry.sza=sza
-        result = run_uvscpec(sim=sim)
+        sza = 90 - angle
+        downlink_sim.geometry.sza=sza
+        result = run_uvscpec(sim=downlink_sim)
         wavelength, edir, *_ = map(float, result.split())
         writer.writerow([angle, edir])
 
-pprint.pprint(sim)
-print(sim.generate_uvspec_input())
+pprint.pprint(downlink_sim)
+print(downlink_sim.generate_uvspec_input())
 
-radtran = pd.read_csv('test.csv')
+radtran = pd.read_csv('downlink.csv')
 ax = radtran.plot(x='# theta (deg)', y='785 nm')
 
 modtran = pd.read_csv('./SatQuMA/channel/atmosphere/MODTRAN_wl_785.0-850.0-5.0nm_h1_500.0km_h0_0.0km_elevation_data.csv')

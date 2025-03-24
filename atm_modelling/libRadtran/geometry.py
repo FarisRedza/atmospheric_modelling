@@ -7,10 +7,10 @@ from .units import *
 
 @dataclasses.dataclass
 class Geometry:
-    sza: degrees = None
-    phi0: float = None
-    phi: float = None
-    umu: float = None
+    sza: degrees = None # zengith (elevation) angle of the sun
+    phi0: float = None # azimuthal (horizon) angle of the sun
+    phi: float = None # viewing azimuthal angle
+    umu: float = None # viewing zenith angle
     day_of_year: float = None
     latitude: str = None
     longitude: str = None
