@@ -29,30 +29,33 @@ class Simulation:
     output: Output = None
 
     def generate_uvspec_input(self) -> str:
-        parameters = [
-            self.spectral.generate_uvspec_input(),
-            self.general_atm.generate_uvspec_input(),
-            self.mol_atm.generate_uvspec_input(),
-            self.aerosol.generate_uvspec_input(),
-            # self.profile.generate_uvspec_input(),
-            # self.clouds.generate_uvspec_input(),
-            self.surface.generate_uvspec_input(),
-            self.solver.generate_uvspec_input(),
-            # self.monte_carlo.generate_uvspec_input(),
-            self.geometry.generate_uvspec_input(),
-            self.output.generate_uvspec_input()
-        ]
+        parameters = []
+        def add_parameter(parameter):
+            if parameter is not None:
+                parameters.append(parameter.generate_uvspec_input())
+
+        add_parameter(self.spectral)
+        add_parameter(self.general_atm)
+        add_parameter(self.mol_atm)
+        add_parameter(self.aerosol)
+        add_parameter(self.profile)
+        add_parameter(self.clouds)
+        add_parameter(self.surface)
+        add_parameter(self.solver)
+        add_parameter(self.monte_carlo)
+        add_parameter(self.geometry)
+        add_parameter(self.output)
         return '\n'.join(parameters)
 
-def run_uvscpec(sim: Simulation) -> str:
-    cwd = os.getcwd()
-    os.chdir(os.path.join(os.environ['LIBRADTRANDIR'],'examples'))
-    result = subprocess.run(
-        ['../bin/uvspec'],
-        input=sim.generate_uvspec_input(),
-        stdout=subprocess.PIPE,
-        text=True,
-        check=True
-    )
-    os.chdir(cwd)
-    return result.stdout
+    def run_uvscpec(self) -> str:
+        cwd = os.getcwd()
+        os.chdir(os.path.join(os.environ['LIBRADTRANDIR'],'examples'))
+        result = subprocess.run(
+            ['../bin/uvspec'],
+            input=self.generate_uvspec_input(),
+            stdout=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        os.chdir(cwd)
+        return result.stdout

@@ -1,3 +1,7 @@
 [submodule "SatQuMA"]
 	path = SatQuMA
 	url = https://github.com/cnqo-qcomms/SatQuMA.git
+[submodule "Qrackling"]
+	path = Qrackling
+	url = https://github.com/Free-Space-QKD-Lab-HWU/Qrackling
+	branch = 37f1be9

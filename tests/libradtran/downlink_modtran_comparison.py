@@ -65,17 +65,13 @@ with open(file='downlink.csv', mode='w') as csvfile:
     for angle in elevation:
         sza = 90 - angle
         downlink_sim.geometry.sza=sza
-        result = run_uvscpec(sim=downlink_sim)
+        result = downlink_sim.run_uvscpec()
         wavelength, edir, *_ = map(float, result.split())
         writer.writerow([angle, edir])
 
-pprint.pprint(downlink_sim)
-print(downlink_sim.generate_uvspec_input())
-
 radtran = pd.read_csv('downlink.csv')
 ax = radtran.plot(x='# theta (deg)', y='785 nm')
-
-modtran = pd.read_csv('./SatQuMA/channel/atmosphere/MODTRAN_wl_785.0-850.0-5.0nm_h1_500.0km_h0_0.0km_elevation_data.csv')
+modtran = pd.read_csv('SatQuMA/channel/atmosphere/MODTRAN_wl_785.0-850.0-5.0nm_h1_500.0km_h0_0.0km_elevation_data.csv')
 modtran.plot(x='# theta (deg)', y='785 nm', ax=ax)
 
 plt.legend(['libRadtran', 'MODTRAN'])
