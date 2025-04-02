@@ -1,0 +1,103 @@
+{
+    "simulation": {
+        "scheme": "uplink",
+        "pass_time": {
+            "year": 2025,
+            "month": 4,
+            "day": 2,
+            "hour": 0,
+            "minute": 0,
+            "second": 0
+        },
+        "duration": {
+            "day": 0.5
+        }
+    },
+    "source": {
+        "Wavelength": 785,
+        "MPN_Signal": 0.8,
+        "MPN_Decoy": 0.3,
+        "Probability_Signal": 0.5,
+        "Probability_Decoy": 0.25,
+        "Repetition_Rate": 1e8,
+        "g2": 0.01,
+        "Efficiency": 1,
+        "State_Prep_Error": 0.0025
+    },
+    "ogs_telescope": {
+        "Diameter": 0.7,
+        "Pointing_Jitter": 1e-6,
+        "Optical_Efficiency": 1,
+        "Focal_Length": 0.4,
+        "Eyepiece_Focal_Length": 0.076
+    },
+    "downlink_beacon_telescope": {
+        "Diameter": 0.01,
+        "FOV": 0.4,
+        "Wavelength": 685,
+        "Optical_Efficiency": 1,
+        "Pointing_Jitter": 1e-3
+    },
+    "downlink_beacon": {
+        "Flat_Top_Beacon": {
+            "Telescope": "downlink_beacon_telescope",
+            "Power": 2,
+            "Wavelength": "downlink_beacon_telescope.Wavelength"
+        }
+    },
+    "downlink_beacon_camera_telescope": {
+        "Diameter": 0.4,
+        "Wavelength": "downlink_beacon.Wavelength",
+        "Optical_Efficiency": 1,
+        "Focal_Length": 2.72,
+        "Pointing_Jitter": 1e-3
+    },
+    "downlink_beacon_camera": {
+        "AC4040": {
+            "Telescope": "downlink_beacon_camera_telescope",
+            "Exposure_Time": 0.01,
+            "Spectral_Filter_Width": 10
+        }
+    },
+    "uplink_beacon_camera_telescope": {
+        "Diameter": 0.08,
+        "Wavelength": 850,
+        "Optical_Efficiency": 1,
+        "Focal_Length": 0.86,
+        "Pointing_Jitter": 1e-3
+    },
+    "uplink_beacon_telescope": {
+        "obj": "downlink_beacon_camera_telescope",
+        "Wavelength": "uplink_beacon_camera_telescope.Wavelength"
+    },
+    "uplink_beacon": {
+        "Gaussian_Beacon": {
+            "Telescope": "uplink_beacon_telescope",
+            "Power": 40e-3,
+            "Wavelength": "uplink_beacon_camera_telescope.Wavelength"
+        }
+    },
+    "satellite": {
+        "Name": "QEYSSat",
+        "KeplerElements": {
+            "semi_major_axis": 6921000,
+            "eccentricity": 0,
+            "inclination": 97.6,
+            "raan": 167.4,
+            "argument_of_periapsis": 98.9170,
+            "mean_anomaly": 60
+        },
+        "sampleTime": 1
+    },
+    "bb84_detector": {
+        "Wavelength": "simulation.source.Wavelength",
+        "Repetition_Rate": 1e9,
+        "Time_Gate_Width": 1e-9,
+        "Spectral_Filter": 10,
+        "Preset": "MicroPhotonDevices"
+    },
+    "ground_station": {
+        "Wavelength": "simulation.source.Wavelength",
+        "Preset": "HubOpticalGroundStation"
+    }
+}

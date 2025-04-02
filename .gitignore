@@ -2,3 +2,4 @@ libRadtran-*/
 .venv/
 __pycache__/
 SatQuMA/
+tests/qrackling/results/
