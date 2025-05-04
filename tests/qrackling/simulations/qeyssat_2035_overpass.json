@@ -2,12 +2,12 @@
     "simulation": {
         "scheme": "uplink",
         "pass_time": {
-            "year": 2025,
+            "year": 2035,
             "month": 4,
-            "day": 2,
-            "hour": 0,
-            "minute": 0,
-            "second": 0
+            "day": 30,
+            "hour": 22,
+            "minute": 42,
+            "second": 41
         },
         "duration": {
             "day": 0.5
