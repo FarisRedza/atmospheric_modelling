@@ -11,7 +11,7 @@ class Source(enum.Enum):
 @dataclasses.dataclass
 class Spectral:
     wavelength: typing.List[nm] = None
-    source: Source = None
+    source: Source = Source.SOLAR
 
     def __post_init__(self):  
         if not isinstance(self.wavelength, typing.Union[list, None]):
@@ -40,7 +40,7 @@ class Spectral:
                     case list():
                         parameters.append(f'{field_name} {" ".join([str(i) for i in parameter])}')
                     case _:
-                        raise Exception(f'Unknown type {type(parameter)}')
+                        raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
         add_parameter(self.wavelength)
         add_parameter(self.source)

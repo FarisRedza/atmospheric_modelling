@@ -1,54 +1,59 @@
+import sys
+import os
+import typing
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango, GLib
+from gi.repository import Gtk, Adw, GObject
 
-from atm_modelling.libRadtran import solver
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+)
+import libRadtran.solver
 
 class Solver(Adw.PreferencesPage):
-    def __init__(self, parent):
+    def __init__(
+            self,
+            set_settings_callback: typing.Callable,
+            get_settings_callback: typing.Callable
+    ) -> None:
         super().__init__()
-        self.parent = parent
-        self.settings = solver.Solver()
+        self.set_settings_callback = set_settings_callback
+        self.get_settings_callback = get_settings_callback
 
-        # settings group
-        settings_group = Adw.PreferencesGroup()
-        settings_group.set_title(title='Settings')
-        self.add(settings_group)
+        settings_group = Adw.PreferencesGroup(title='Settings')
+        self.add(group=settings_group)
 
-        ## rte_solver row
-        rte_solver_row = Adw.ActionRow(title='RTE Solver')
-        settings_group.add(child=rte_solver_row)
+        # solver
+        solver_row = Adw.ActionRow(title='Solver')
+        settings_group.add(child=solver_row)
 
-        ### select rte_solver dropdown
-        dropdown_factory = Gtk.SignalListItemFactory.new()
-        dropdown_factory.connect('setup', self.on_dropdown_setup)
-        dropdown_factory.connect('bind', self.on_dropdown_bind)
+        solver_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.solver.RTESolver]
+        )
+        solver_dropdown.connect(
+            'notify::selected',
+            self.on_solver_select
+        )
+        solver_dropdown.set_selected(
+            position=list(
+                libRadtran.solver.RTESolver
+            ).index(
+                self.get_settings_callback().rte_solver
+            )
+        )
+        solver_dropdown.set_valign(align=Gtk.Align.CENTER)
+        solver_row.set_activatable_widget(widget=solver_dropdown)
+        solver_row.add_suffix(widget=solver_dropdown)
 
-        rte_solver_list = Gtk.StringList()
-        for value in [rte_solver.value for rte_solver in solver.RTESolver]:
-            rte_solver_list.append(str(value))
-
-        select_rte_solver_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_rte_solver_dropdown.set_factory(factory=dropdown_factory)
-        select_rte_solver_dropdown.connect('notify::selected', self.on_rte_solver_select)
-        select_rte_solver_dropdown.props.model = rte_solver_list
-        rte_solver_row.add_suffix(widget=select_rte_solver_dropdown)
-
-    def on_dropdown_setup(self, factory, list_item):
-        label = Gtk.Label()
-        label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
-        label.set_xalign(0)
-        label.set_max_width_chars(20)
-        label.set_hexpand(expand=True)
-        list_item.set_child(label)
-
-    def on_dropdown_bind(self, factory, list_item):
-        item = list_item.get_item()
-        label = list_item.get_child()
-
-        if isinstance(item, Gtk.StringObject):
-            label.set_label(item.get_string())
-
-    def on_rte_solver_select(self, dropdown, _):
-        self.selected_rte_solver = dropdown.get_selected()
+    def on_solver_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.solver.Solver = self.get_settings_callback()
+        settings.rte_solver = list(
+            libRadtran.solver.RTESolver
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)

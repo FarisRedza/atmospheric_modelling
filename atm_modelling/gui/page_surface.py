@@ -1,69 +1,69 @@
+import sys
+import os
+import typing
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango, GLib
+from gi.repository import Gtk, Adw, GObject
 
-from atm_modelling.libRadtran import surface
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+)
+import libRadtran.surface
 
 class Surface(Adw.PreferencesPage):
-    def __init__(self, parent):
+    def __init__(
+            self,
+            set_settings_callback: typing.Callable,
+            get_settings_callback: typing.Callable
+    ) -> None:
         super().__init__()
-        self.parent = parent
-        self.settings = surface.Surface()
+        self.set_settings_callback = set_settings_callback
+        self.get_settings_callback = get_settings_callback
 
-        # settings group
-        settings_group = Adw.PreferencesGroup()
-        settings_group.set_title(title='Settings')
-        self.add(settings_group)
+        settings_group = Adw.PreferencesGroup(title='Settings')
+        self.add(group=settings_group)
 
-        ## altitude row
+        # altitude row
         altitude_row = Adw.ActionRow(title='Altitude')
         settings_group.add(child=altitude_row)
 
-        ### altitude entry
-        self.altitude_entry = Gtk.Entry(
-            placeholder_text=surface.Surface.__dataclass_fields__['altitude'].default,
+        altitude_entry = Gtk.Entry(
+            placeholder_text='km',
             valign=Gtk.Align.CENTER
         )
-        self.altitude_entry.set_icon_from_icon_name(
-            icon_pos=Gtk.EntryIconPosition.SECONDARY,
-            icon_name='edit-clear-symbolic'
+        altitude_entry.connect(
+            'activate',
+            self.on_set_altitude,
         )
-        self.altitude_entry.set_icon_tooltip_text(
-            Gtk.EntryIconPosition.SECONDARY,
-            'Clear'
-        )
-        self.altitude_entry.connect(
-            'icon_press',
-            self.on_altitude_clear
-        )
-        altitude_row.add_suffix(widget=self.altitude_entry)
+        altitude_row.add_suffix(widget=altitude_entry)
 
-        ## albedo row
+        # albedo row
         albedo_row = Adw.ActionRow(title='Albedo')
         settings_group.add(child=albedo_row)
 
-        ### albedo entry
-        self.albedo_entry = Gtk.Entry(
-            placeholder_text=surface.Surface.__dataclass_fields__['albedo'].default,
+        albedo_entry = Gtk.Entry(
             valign=Gtk.Align.CENTER
         )
-        self.albedo_entry.set_icon_from_icon_name(
-            icon_pos=Gtk.EntryIconPosition.SECONDARY,
-            icon_name='edit-clear-symbolic'
+        albedo_entry.connect(
+            'activate',
+            self.on_set_albedo,
         )
-        self.albedo_entry.set_icon_tooltip_text(
-            Gtk.EntryIconPosition.SECONDARY,
-            'Clear'
-        )
-        self.albedo_entry.connect(
-            'icon_press',
-            self.on_albedo_clear
-        )
-        albedo_row.add_suffix(widget=self.albedo_entry)
+        albedo_row.add_suffix(widget=albedo_entry)
 
-    def on_altitude_clear(self, entry, _):
-        self.altitude_entry.set_text(text='')
+    def on_set_altitude(
+            self,
+            entry: Gtk.Entry
+    ) -> None:
+        settings: libRadtran.surface.Surface = self.get_settings_callback()
+        settings.altitude = float(entry.get_text())
+        self.set_settings_callback(settings=settings)
 
-    def on_albedo_clear(self, entry, _):
-        self.albedo_entry.set_text(text='')
+    def on_set_albedo(
+            self,
+            entry: Gtk.Entry
+    ) -> None:
+        settings: libRadtran.surface.Surface = self.get_settings_callback()
+        settings.albedo = float(entry.get_text())
+        self.set_settings_callback(settings=settings)

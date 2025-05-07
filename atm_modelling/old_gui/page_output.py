@@ -141,10 +141,10 @@ class Output(Adw.PreferencesPage):
         )
         zout_row.add_suffix(widget=self.zout_entry)
 
-    def on_toggle_quiet(self, switch):
+    def on_toggle_quiet(self, switch: Gtk.Switch):
         self.settings.quiet = not self.settings.quiet
 
-    def on_dropdown_setup(self, factory, list_item):
+    def on_dropdown_setup(self, factory: Gtk.SignalListItemFactory, list_item):
         label = Gtk.Label()
         label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         label.set_xalign(0)
@@ -152,20 +152,20 @@ class Output(Adw.PreferencesPage):
         label.set_hexpand(expand=True)
         list_item.set_child(label)
 
-    def on_dropdown_bind(self, factory, list_item):
+    def on_dropdown_bind(self, factory: Gtk.SignalListItemFactory, list_item):
         item = list_item.get_item()
         label = list_item.get_child()
 
         if isinstance(item, Gtk.StringObject):
             label.set_label(item.get_string())
 
-    def on_toggle_verbose(self, switch):
+    def on_toggle_verbose(self, switch: Gtk.Switch):
         self.settings.verbose = not self.settings.verbose
 
-    def on_output_user_clear(self, entry, _):
+    def on_output_user_clear(self, entry: Gtk.Entry, _):
         self.output_user_entry.set_text(text='')
 
-    def on_dropdown_setup(self, factory, list_item):
+    def on_dropdown_setup(self, factory: Gtk.SignalListItemFactory, list_item: Gtk.ListItem):
         label = Gtk.Label()
         label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         label.set_xalign(0)
@@ -173,21 +173,21 @@ class Output(Adw.PreferencesPage):
         label.set_hexpand(expand=True)
         list_item.set_child(label)
 
-    def on_dropdown_bind(self, factory, list_item):
+    def on_dropdown_bind(self, factory: Gtk.SignalListItemFactory, list_item: Gtk.ListItem):
         item = list_item.get_item()
         label = list_item.get_child()
 
         if isinstance(item, Gtk.StringObject):
             label.set_label(item.get_string())
 
-    def on_output_quantity_select(self, dropdown, _):
+    def on_output_quantity_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()
 
-    def on_output_process_select(self, dropdown, _):
+    def on_output_process_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()
 
-    def on_output_format_select(self, dropdown, _):
+    def on_output_format_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()
 
-    def on_zout_clear(self, entry, _):
+    def on_zout_clear(self, entry: Gtk.Entry, _):
         self.zout_entry.set_text(text='')

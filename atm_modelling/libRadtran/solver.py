@@ -2,17 +2,17 @@ import dataclasses
 import enum
 
 class RTESolver(enum.Enum):
-    DISORT = "disort"
-    MYSTIC = "MYSTIC"
-    FDISORT1 = "fdisort1"
-    FDISORT2 = "fdisort2"
-    TWOSTR = "twostr"
-    RODENTS = "rodents"
-    SDISORT = "sdisort"
-    SPSDISORT = "spsdisort"
-    TZS = "tzs"
-    SSS = "sss"
-    SSLIDAR = "sslidar"
+    DISORT = 'disort'
+    MYSTIC = 'MYSTIC'
+    FDISORT1 = 'fdisort1'
+    FDISORT2 = 'fdisort2'
+    TWOSTR = 'twostr'
+    RODENTS = 'rodents'
+    SDISORT = 'sdisort'
+    SPSDISORT = 'spsdisort'
+    TZS = 'tzs'
+    SSS = 'sss'
+    SSLIDAR = 'sslidar'
 
 @dataclasses.dataclass
 class Solver:
@@ -40,7 +40,7 @@ class Solver:
                     case float() | int():
                         parameters.append(f'{field_name} {parameter}')
                     case _:
-                        raise Exception(f'Unknown type {type(parameter)}')
+                        raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
         add_parameter(self.rte_solver)
 

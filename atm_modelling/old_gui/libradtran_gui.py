@@ -6,17 +6,17 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gio, Adw, GObject
 
-from atm_modelling.gui.page_spectral import Spectral
-from atm_modelling.gui.page_general_atm import GeneralAtm
-from atm_modelling.gui.page_mol_atm import MolAtm
-from atm_modelling.gui.page_aerosol import Aerosol
-from atm_modelling.gui.page_profile import Profile
-from atm_modelling.gui.page_clouds import Clouds
-from atm_modelling.gui.page_surface import Surface
-from atm_modelling.gui.page_solver import Solver
-from atm_modelling.gui.page_monte_carlo import MonteCarlo
-from atm_modelling.gui.page_geometry import Geometry
-from atm_modelling.gui.page_output import Output
+from atm_modelling.old_gui.page_spectral import Spectral
+from atm_modelling.old_gui.page_general_atm import GeneralAtm
+from atm_modelling.old_gui.page_mol_atm import MolAtm
+from atm_modelling.old_gui.page_aerosol import Aerosol
+from atm_modelling.old_gui.page_profile import Profile
+from atm_modelling.old_gui.page_clouds import Clouds
+from atm_modelling.old_gui.page_surface import Surface
+from atm_modelling.old_gui.page_solver import Solver
+from atm_modelling.old_gui.page_monte_carlo import MonteCarlo
+from atm_modelling.old_gui.page_geometry import Geometry
+from atm_modelling.old_gui.page_output import Output
 
 @dataclasses.dataclass
 class Settings():
@@ -170,7 +170,7 @@ class MainWindow(Adw.ApplicationWindow):
             title='Output'
         )
 
-    def on_toggle_sidebar(self, button):
+    def on_toggle_sidebar(self, button: Gtk.Button):
         if self.revealer.get_reveal_child() == True:
             self.settings.manually_hidden= True
         else:
@@ -180,7 +180,7 @@ class MainWindow(Adw.ApplicationWindow):
             not self.revealer.get_reveal_child()
         )
 
-    def on_window_resize(self, widget, _):
+    def on_window_resize(self, widget: Gtk.Widget, _):
         width = self.get_default_size().width
         if width < 550:
             if not self.settings.manually_shown:
@@ -243,11 +243,11 @@ class App(Adw.Application):
         self.win = MainWindow(application=app)
         self.win.present()
 
-    def on_new_window(self, action, param):
+    def on_new_window(self, action: Gio.SimpleAction, param):
         new_win = MainWindow(application=self)
         new_win.present()
 
-    def on_full_screen(self, action, param):
+    def on_full_screen(self, action: Gio.SimpleAction, param):
         active_window = self.get_active_window()
         if active_window:
             if active_window.is_fullscreen():
@@ -255,7 +255,7 @@ class App(Adw.Application):
             else:
                 active_window.fullscreen()
 
-    def on_help(self, action, _):
+    def on_help(self, action: Gio.SimpleAction, _):
         help_dialog = Gtk.MessageDialog(
             transient_for=self.get_active_window(),
             modal=True,
@@ -266,7 +266,7 @@ class App(Adw.Application):
         help_dialog.connect('response', lambda dialog, response: dialog.destroy())
         help_dialog.present()
 
-    def on_about(self, action, _):
+    def on_about(self, action: Gio.SimpleAction, _):
         about_dialog = Gtk.AboutDialog(
             transient_for=self.win,
             modal=True
@@ -282,7 +282,7 @@ class App(Adw.Application):
         )
         about_dialog.present()
 
-    def on_quit(self, action, _):
+    def on_quit(self, action: Gio.SimpleAction, _):
         self.quit()
 
 

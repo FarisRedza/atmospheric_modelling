@@ -1,81 +1,81 @@
+import sys
+import os
+import typing
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango, GLib, Gio, GObject
+from gi.repository import Gtk, Adw, GObject
 
-from atm_modelling.libRadtran import spectral
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+)
+import libRadtran.spectral
 
 class Spectral(Adw.PreferencesPage):
-    def __init__(self, parent):
+    def __init__(
+            self,
+            set_settings_callback: typing.Callable,
+            get_settings_callback: typing.Callable
+    ) -> None:
         super().__init__()
-        self.parent = parent
-        self.settings = spectral.Spectral()
+        self.set_settings_callback = set_settings_callback
+        self.get_settings_callback = get_settings_callback
 
-        # settings group
-        settings_group = Adw.PreferencesGroup()
-        settings_group.set_title(title='Settings')
-        self.add(settings_group)
+        settings_group = Adw.PreferencesGroup(title='Settings')
+        self.add(group=settings_group)
 
         ## wavelength row
         wavelength_row = Adw.ActionRow(title='Wavelength')
         settings_group.add(child=wavelength_row)
 
-        ### wavelength entry
-        self.wavelength_entry = Gtk.Entry(
-            placeholder_text='Enter wavelengths (nm)',
+        wavelength_entry = Gtk.Entry(
+            placeholder_text='nm',
             valign=Gtk.Align.CENTER
         )
-        self.wavelength_entry.set_icon_from_icon_name(
-            icon_pos=Gtk.EntryIconPosition.SECONDARY,
-            icon_name='edit-clear-symbolic'
+        wavelength_entry.connect(
+            'activate',
+            self.on_set_wavelength,
         )
-        self.wavelength_entry.set_icon_tooltip_text(
-            Gtk.EntryIconPosition.SECONDARY,
-            'Clear'
-        )
-        self.wavelength_entry.connect(
-            'icon_press',
-            self.on_wavelength_clear
-        )
-        wavelength_row.add_suffix(widget=self.wavelength_entry)
+        wavelength_row.add_suffix(widget=wavelength_entry)
 
-        ## source row
+        # source dropdown
         source_row = Adw.ActionRow(title='Source')
         settings_group.add(child=source_row)
 
-        ### select source dropdown
-        dropdown_factory = Gtk.SignalListItemFactory.new()
-        dropdown_factory.connect('setup', self.on_dropdown_setup)
-        dropdown_factory.connect('bind', self.on_dropdown_bind)
+        source_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.spectral.Source]
+        )
+        source_dropdown.connect(
+            'notify::selected',
+            self.on_source_select
+        )
+        source_dropdown.set_selected(
+            position=list(
+                libRadtran.spectral.Source
+            ).index(
+                self.get_settings_callback().source
+            )
+        )
+        source_dropdown.set_valign(align=Gtk.Align.CENTER)
+        source_row.set_activatable_widget(widget=source_dropdown)
+        source_row.add_suffix(widget=source_dropdown)
 
-        self.source_list = [source.value for source in spectral.Source]
-        source_string_list = Gtk.StringList()
-        for value in self.source_list:
-            source_string_list.append(value)
+    def on_set_wavelength(
+            self,
+            entry: Gtk.Entry
+    ) -> None:
+        settings: libRadtran.spectral.Spectral = self.get_settings_callback()
+        settings.wavelength = [float(entry.get_text()), float(entry.get_text())]
+        self.set_settings_callback(settings=settings)
 
-        select_source_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_source_dropdown.set_factory(factory=dropdown_factory)
-        select_source_dropdown.connect('notify::selected', self.on_source_select)
-        select_source_dropdown.props.model = source_string_list
-        source_row.add_suffix(widget=select_source_dropdown)
-
-    def on_wavelength_clear(self, entry, _):
-        self.wavelength_entry.set_text(text='')
-
-    def on_dropdown_setup(self, factory, list_item):
-        label = Gtk.Label()
-        label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
-        label.set_xalign(0)
-        label.set_max_width_chars(20)
-        label.set_hexpand(expand=True)
-        list_item.set_child(label)
-
-    def on_dropdown_bind(self, factory, list_item):
-        item = list_item.get_item()
-        label = list_item.get_child()
-
-        if isinstance(item, Gtk.StringObject):
-            label.set_label(item.get_string())
-
-    def on_source_select(self, dropdown, _):
-        self.settings.source = self.source_list[dropdown.get_selected()]
+    def on_source_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.spectral.Spectral = self.get_settings_callback()
+        settings.source = list(
+            libRadtran.spectral.Source
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)

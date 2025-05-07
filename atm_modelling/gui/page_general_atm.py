@@ -1,73 +1,114 @@
+import sys
+import os
+import typing
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango, GLib
+from gi.repository import Gtk, Adw, GObject
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+)
+import libRadtran.general_atm
 
-from atm_modelling.libRadtran import general_atm
 
 class GeneralAtm(Adw.PreferencesPage):
-    def __init__(self, parent):
+    def __init__(
+            self,
+            set_settings_callback: typing.Callable,
+            get_settings_callback: typing.Callable
+    ) -> None:
         super().__init__()
-        self.parent = parent
-        self.settings = general_atm.GeneralAtm()
+        self.set_settings_callback = set_settings_callback
+        self.get_settings_callback = get_settings_callback
 
-        # settings group
-        settings_group = Adw.PreferencesGroup()
-        settings_group.set_title(title='Settings')
-        self.add(settings_group)
+        settings_group = Adw.PreferencesGroup(title='Settings')
+        self.add(group=settings_group)
 
-        ## absorption row
+        # absorption switch
         absorption_row = Adw.ActionRow(title='Absorption')
-        settings_group.add(child=absorption_row)
-
-        ### absorption switch
-        absorption_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        absorption_switch.set_active(not self.settings.no_absorption)
-        absorption_switch.connect('activate', self.on_toggle_absorption)
+        absorption_switch = Gtk.Switch(
+            active=not self.get_settings_callback().no_absorption,
+            valign=Gtk.Align.CENTER
+        )
+        absorption_switch.connect('notify::active', self.on_set_absorption)
         absorption_row.add_suffix(widget=absorption_switch)
-        absorption_row.set_activatable_widget(widget=absorption_switch)
+        absorption_row.set_activatable_widget(
+            widget=absorption_switch
+        )
+        settings_group.add(absorption_row)
 
-        ## scattering row
+        # scattering switch
         scattering_row = Adw.ActionRow(title='Scattering')
-        settings_group.add(child=scattering_row)
-
-        ### scattering switch
-        scattering_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        scattering_switch.set_active(not self.settings.no_scattering)
-        scattering_switch.connect('activate', self.on_toggle_scattering)
+        scattering_switch = Gtk.Switch(
+            active=not self.get_settings_callback().no_scattering,
+            valign=Gtk.Align.CENTER
+        )
+        scattering_switch.connect('notify::active', self.on_set_scattering)
         scattering_row.add_suffix(widget=scattering_switch)
-        scattering_row.set_activatable_widget(widget=scattering_switch)
+        scattering_row.set_activatable_widget(
+            widget=scattering_switch
+        )
+        settings_group.add(scattering_row)
 
-        ## zout_interpolate row
-        zout_interpolate_row = Adw.ActionRow(title='Zout Interpolate')
-        settings_group.add(child=zout_interpolate_row)
-
-        ### zout_interpolate switch
-        zout_interpolate_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        zout_interpolate_switch.set_active(self.settings.zout_interpolate)
-        zout_interpolate_switch.connect('activate', self.on_toggle_zout_interpolate)
+        # zout interpolate switch
+        zout_interpolate_row = Adw.ActionRow(title='Zout interpolate')
+        zout_interpolate_switch = Gtk.Switch(
+            active=self.get_settings_callback().zout_interpolate,
+            valign=Gtk.Align.CENTER
+        )
+        zout_interpolate_switch.connect('notify::active', self.on_set_zout_interpolate)
         zout_interpolate_row.add_suffix(widget=zout_interpolate_switch)
-        zout_interpolate_row.set_activatable_widget(widget=zout_interpolate_switch)
+        zout_interpolate_row.set_activatable_widget(
+            widget=zout_interpolate_switch
+        )
+        settings_group.add(zout_interpolate_row)
 
-        ## reverse_atmosphere row
-        reverse_atmosphere_row = Adw.ActionRow(title='Reverse Atmosphere')
-        settings_group.add(child=reverse_atmosphere_row)
-
-        ### reverse_atmosphere switch
-        reverse_atmosphere_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        reverse_atmosphere_switch.set_active(self.settings.reverse_atmosphere)
-        reverse_atmosphere_switch.connect('activate', self.on_toggle_reverse_atmosphere)
+        # reverse atmosphere switch
+        reverse_atmosphere_row = Adw.ActionRow(title='Reverse atmosphere')
+        reverse_atmosphere_switch = Gtk.Switch(
+            active=self.get_settings_callback().reverse_atmosphere,
+            valign=Gtk.Align.CENTER
+        )
+        reverse_atmosphere_switch.connect('notify::active', self.on_set_reverse_atmosphere)
         reverse_atmosphere_row.add_suffix(widget=reverse_atmosphere_switch)
-        reverse_atmosphere_row.set_activatable_widget(widget=reverse_atmosphere_switch)
+        reverse_atmosphere_row.set_activatable_widget(
+            widget=reverse_atmosphere_switch
+        )
+        settings_group.add(reverse_atmosphere_row)
 
-    def on_toggle_absorption(self, switch):
-        self.settings.no_absorption = not self.settings.no_absorption
+    def on_set_absorption(
+            self,
+            switch: Gtk.Switch,
+            gparam: GObject.GParamSpec
+    ) -> None:
+        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings.no_absorption = not switch.get_active()
+        self.set_settings_callback(settings=settings)
 
-    def on_toggle_scattering(self, switch):
-        self.settings.no_scattering = not self.settings.no_scattering
+    def on_set_scattering(
+            self,
+            switch: Gtk.Switch,
+            gparam: GObject.GParamSpec
+    ) -> None:
+        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings.no_scattering = not switch.get_active()
+        self.set_settings_callback(settings=settings)
 
-    def on_toggle_zout_interpolate(self, switch):
-        self.settings.zout_interpolate = not self.settings.zout_interpolate
+    def on_set_zout_interpolate(
+            self,
+            switch: Gtk.Switch,
+            gparam: GObject.GParamSpec
+    ) -> None:
+        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings.zout_interpolate = switch.get_active()
+        self.set_settings_callback(settings=settings)
 
-    def on_toggle_reverse_atmosphere(self, switch):
-        self.settings.reverse_atmosphere = not self.settings.reverse_atmosphere
+    def on_set_reverse_atmosphere(
+            self,
+            switch: Gtk.Switch,
+            gparam: GObject.GParamSpec
+    ) -> None:
+        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings.reverse_atmosphere = switch.get_active()
+        self.set_settings_callback(settings=settings)

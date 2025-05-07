@@ -34,7 +34,7 @@ class Surface:
                     case float() | int():
                         parameters.append(f'{field_name} {parameter}')
                     case _:
-                        raise Exception(f'Unknown type {type(parameter)}')
+                        raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
 
         add_parameter(self.altitude)

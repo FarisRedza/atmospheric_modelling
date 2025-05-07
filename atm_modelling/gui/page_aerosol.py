@@ -1,171 +1,201 @@
+import sys
+import os
+import typing
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango, GLib
+from gi.repository import Gtk, Adw, GObject
 
-from atm_modelling.libRadtran import aerosol
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+)
+import libRadtran.aerosol
+
 
 class Aerosol(Adw.PreferencesPage):
-    def __init__(self, parent):
+    def __init__(
+            self,
+            set_settings_callback: typing.Callable,
+            get_settings_callback: typing.Callable
+    ) -> None:
         super().__init__()
-        self.parent = parent
-        self.settings = aerosol.Aerosol()
+        self.set_settings_callback = set_settings_callback
+        self.get_settings_callback = get_settings_callback
 
-        # settings group
-        settings_group = Adw.PreferencesGroup()
-        settings_group.set_title(title='Settings')
-        self.add(settings_group)
+        settings_group = Adw.PreferencesGroup(title='Settings')
+        self.add(group=settings_group)
 
-        ## default row
+        # default switch
         default_row = Adw.ActionRow(title='Default')
-        settings_group.add(child=default_row)
-
-        ### default switch
-        default_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        default_switch.set_active(self.settings.aerosol_default)
-        default_switch.connect('activate', self.on_toggle_default)
+        default_switch = Gtk.Switch(
+            active=self.get_settings_callback().aerosol_default,
+            valign=Gtk.Align.CENTER
+        )
+        default_switch.connect("notify::active", self.on_set_default)
         default_row.add_suffix(widget=default_switch)
-        default_row.set_activatable_widget(widget=default_switch)
+        default_row.set_activatable_widget(
+            widget=default_switch
+        )
+        settings_group.add(default_row)
 
-        ## season row
+        # season dropdown
         season_row = Adw.ActionRow(title='Season')
         settings_group.add(child=season_row)
 
-        ### select season dropdown
-        dropdown_factory = Gtk.SignalListItemFactory.new()
-        dropdown_factory.connect('setup', self.on_dropdown_setup)
-        dropdown_factory.connect('bind', self.on_dropdown_bind)
+        season_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.aerosol.AerosolSeason]
+        )
+        season_dropdown.connect(
+            'notify::selected',
+            self.on_season_select
+        )
+        season_dropdown.set_valign(align=Gtk.Align.CENTER)
+        season_row.set_activatable_widget(widget=season_dropdown)
+        season_row.add_suffix(widget=season_dropdown)
 
-        self.season_list = [season.value for season in aerosol.AerosolSeason]
-        season_string_list = Gtk.StringList()
-        for value in self.season_list:
-            season_string_list.append(str(value))
-
-        select_season_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_season_dropdown.set_factory(factory=dropdown_factory)
-        select_season_dropdown.connect('notify::selected', self.on_season_select)
-        select_season_dropdown.props.model = season_string_list
-        season_row.add_suffix(widget=select_season_dropdown)
-
-        ## visibility row
+        ## visiblity dropdown
         visibility_row = Adw.ActionRow(title='Visibility')
         settings_group.add(child=visibility_row)
 
-        ### visibility entry
-        self.visibility_entry = Gtk.Entry(
-            # placeholder_text=aerosol.Aerosol.__dataclass_fields__['aerosol_visibility'].default,
+        visibility_entry = Gtk.Entry(
+            placeholder_text='km',
             valign=Gtk.Align.CENTER
         )
-        self.visibility_entry.set_icon_from_icon_name(
-            icon_pos=Gtk.EntryIconPosition.SECONDARY,
-            icon_name='edit-clear-symbolic'
+        visibility_entry.connect(
+            'activate',
+            self.on_set_visiblity,
         )
-        self.visibility_entry.set_icon_tooltip_text(
-            Gtk.EntryIconPosition.SECONDARY,
-            'Clear'
-        )
-        self.visibility_entry.connect(
-            'icon_press',
-            self.on_visibility_clear
-        )
-        visibility_row.add_suffix(widget=self.visibility_entry)
+        visibility_row.add_suffix(widget=visibility_entry)
 
-        ## haze row
+        # haze dropdown
         haze_row = Adw.ActionRow(title='Haze')
         settings_group.add(child=haze_row)
 
-        ### select haze_row dropdown
-        self.haze_list = [haze.value for haze in aerosol.AerosolHaze]
-        haze_string_list = Gtk.StringList()
-        for value in self.haze_list:
-            haze_string_list.append(str(value))
+        haze_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.aerosol.AerosolHaze]
+        )
+        haze_dropdown.connect(
+            'notify::selected',
+            self.on_haze_select
+        )
+        haze_dropdown.set_valign(align=Gtk.Align.CENTER)
+        haze_row.set_activatable_widget(widget=haze_dropdown)
+        haze_row.add_suffix(widget=haze_dropdown)
 
-        select_haze_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_haze_dropdown.set_factory(factory=dropdown_factory)
-        select_haze_dropdown.connect('notify::selected', self.on_haze_select)
-        select_haze_dropdown.props.model = haze_string_list
-        haze_row.add_suffix(widget=select_haze_dropdown)
-
-        ## vulcan row
+        # vulcan dropdown
         vulcan_row = Adw.ActionRow(title='Vulcan')
         settings_group.add(child=vulcan_row)
 
-        ### select vulcan dropdown
-        self.vulcan_list = [vulcan.value for vulcan in aerosol.AerosolVulcan]
-        vulcan_string_list = Gtk.StringList()
-        for value in self.vulcan_list:
-            vulcan_string_list.append(str(value))
+        vulcan_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.aerosol.AerosolVulcan]
+        )
+        vulcan_dropdown.connect(
+            'notify::selected',
+            self.on_vulcan_select
+        )
+        vulcan_dropdown.set_valign(align=Gtk.Align.CENTER)
+        vulcan_row.set_activatable_widget(widget=vulcan_dropdown)
+        vulcan_row.add_suffix(widget=vulcan_dropdown)
 
-        select_vulcan_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_vulcan_dropdown.set_factory(factory=dropdown_factory)
-        select_vulcan_dropdown.connect('notify::selected', self.on_vulcan_select)
-        select_vulcan_dropdown.props.model = vulcan_string_list
-        vulcan_row.add_suffix(widget=select_vulcan_dropdown)
-
-        ## species row
+        # species dropdown
         species_row = Adw.ActionRow(title='Species')
         settings_group.add(child=species_row)
 
-        ### select species dropdown
-        self.species_list = [species.value for species in aerosol.AerosolSpecies]
-        species_string_list = Gtk.StringList()
-        for value in self.species_list:
-            species_string_list.append(value)
+        species_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.aerosol.AerosolSpecies]
+        )
+        species_dropdown.connect(
+            'notify::selected',
+            self.on_species_select
+        )
+        species_dropdown.set_valign(align=Gtk.Align.CENTER)
+        species_row.set_activatable_widget(widget=species_dropdown)
+        species_row.add_suffix(widget=species_dropdown)
 
-        select_species_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_species_dropdown.set_factory(factory=dropdown_factory)
-        select_species_dropdown.connect('notify::selected', self.on_species_select)
-        select_species_dropdown.props.model = species_string_list
-        species_row.add_suffix(widget=select_species_dropdown)
-
-        ## species_library row
+        # species library dropdown
         species_library_row = Adw.ActionRow(title='Species Library')
         settings_group.add(child=species_library_row)
 
-        ### select species_library dropdown
-        self.species_library_list = [species_library.value for species_library in aerosol.AerosolSpeciesLibrary]
-        species_library_string_list = Gtk.StringList()
-        for value in self.species_library_list :
-            species_library_string_list.append(value)
+        species_library_dropdown = Gtk.DropDown().new_from_strings(
+            strings=[i.name for i in libRadtran.aerosol.AerosolSpeciesLibrary]
+        )
+        species_library_dropdown.connect(
+            'notify::selected',
+            self.on_species_library_select
+        )
+        species_library_dropdown.set_valign(align=Gtk.Align.CENTER)
+        species_library_row.set_activatable_widget(widget=species_library_dropdown)
+        species_library_row.add_suffix(widget=species_library_dropdown)
 
-        select_species_library_dropdown = Gtk.DropDown(valign=Gtk.Align.CENTER)
-        select_species_library_dropdown.set_factory(factory=dropdown_factory)
-        select_species_library_dropdown.connect('notify::selected', self.on_species_library_select)
-        select_species_library_dropdown.props.model = species_library_string_list
-        species_library_row.add_suffix(widget=select_species_library_dropdown)
+    def on_set_default(
+            self,
+            switch: Gtk.Switch,
+            gparam: GObject.GParamSpec
+    ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_default = switch.get_active()
+        self.set_settings_callback(settings=settings)
 
-    def on_toggle_default(self, switch):
-        self.settings.aerosol_default = not self.settings.aerosol_default
+    def on_season_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_season = list(
+            libRadtran.aerosol.AerosolSeason
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)
 
-    def on_dropdown_setup(self, factory, list_item):
-        label = Gtk.Label()
-        label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
-        label.set_xalign(0)
-        label.set_max_width_chars(20)
-        label.set_hexpand(expand=True)
-        list_item.set_child(label)
+    def on_set_visiblity(
+            self,
+            entry: Gtk.Entry
+    ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_visibility = float(entry.get_text())
+        self.set_settings_callback(settings=settings)
 
-    def on_dropdown_bind(self, factory, list_item):
-        item = list_item.get_item()
-        label = list_item.get_child()
+    def on_haze_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_haze = list(
+            libRadtran.aerosol.AerosolHaze
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)
 
-        if isinstance(item, Gtk.StringObject):
-            label.set_label(item.get_string())
+    def on_vulcan_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_vulcan = list(
+            libRadtran.aerosol.AerosolVulcan
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)
 
-    def on_season_select(self, dropdown, _):
-        self.settings.aerosol_season = self.season_list[dropdown.get_selected()]
+    def on_species_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_species_file = list(
+            libRadtran.aerosol.AerosolSpecies
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)
 
-    def on_visibility_clear(self, entry, _):
-        self.visibility_entry.set_text(text='')
-
-    def on_haze_select(self, dropdown, _):
-        self.settings.aerosol_haze = self.haze_list[dropdown.get_selected()]
-
-    def on_vulcan_select(self, dropdown, _):
-        self.settings.aerosol_vulcan = self.vulcan_list[dropdown.get_selected()]
-
-    def on_species_select(self, dropdown, _):
-        self.settings.aerosol_species_file = self.species_list[dropdown.get_selected()]
-
-    def on_species_library_select(self, dropdown, _):
-        self.settings.aerosol_species_library = self.species_library_list[dropdown.get_selected()]
+    def on_species_library_select(
+            self,
+            dropdown: Gtk.DropDown,
+            gparam: GObject.GParamSpec
+        ) -> None:
+        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings.aerosol_species_library = list(
+            libRadtran.aerosol.AerosolSpecies
+        )[dropdown.get_selected()]
+        self.set_settings_callback(settings=settings)

@@ -39,7 +39,7 @@ class GeneralAtm:
                     case float() | int():
                         parameters.append(f'{field_name} {parameter}')
                     case _:
-                        raise Exception(f'Unknown type {type(parameter)}')
+                        raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
         add_parameter(self.no_absorption)
         add_parameter(self.no_scattering)

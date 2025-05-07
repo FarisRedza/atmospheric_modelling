@@ -92,7 +92,7 @@ class MonteCarlo(Adw.PreferencesPage):
         select_mc_output_unit_dropdown.props.model = mc_output_unit_list
         mc_output_unit_row.add_suffix(widget=select_mc_output_unit_dropdown)
 
-    def on_dropdown_setup(self, factory, list_item):
+    def on_dropdown_setup(self, factory: Gtk.SignalListItemFactory, list_item: Gtk.ListItem):
         label = Gtk.Label()
         label.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         label.set_xalign(0)
@@ -100,21 +100,21 @@ class MonteCarlo(Adw.PreferencesPage):
         label.set_hexpand(expand=True)
         list_item.set_child(label)
 
-    def on_dropdown_bind(self, factory, list_item):
+    def on_dropdown_bind(self, factory: Gtk.SignalListItemFactory, list_item: Gtk.ListItem):
         item = list_item.get_item()
         label = list_item.get_child()
 
         if isinstance(item, Gtk.StringObject):
             label.set_label(item.get_string())
 
-    def on_mc_polarisation_select(self, dropdown, _):
+    def on_mc_polarisation_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()
 
-    def on_mc_backward_output_select(self, dropdown, _):
+    def on_mc_backward_output_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()
 
-    def on_mc_forward_output_select(self, dropdown, _):
+    def on_mc_forward_output_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()
 
-    def on_mc_output_unit_select(self, dropdown, _):
+    def on_mc_output_unit_select(self, dropdown: Gtk.DropDown, _):
         self.selected_device = dropdown.get_selected()

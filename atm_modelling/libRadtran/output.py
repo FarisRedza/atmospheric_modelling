@@ -78,7 +78,7 @@ class Output:
                     case list():
                         parameters.append(f'{field_name} {" ".join([str(i) for i in parameter])}')
                     case _:
-                        raise Exception(f'Unknown type {type(parameter)}')
+                        raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
         add_parameter(self.quiet)
         add_parameter(self.verbose)

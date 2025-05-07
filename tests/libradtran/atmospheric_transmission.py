@@ -1,11 +1,24 @@
-import csv
+import sys
+import os
+import pathlib
 import tempfile
 
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+sys.path.append(str(pathlib.Path.cwd()))
 from atm_modelling.libRadtran.libradtran import *
+
+try:
+    os.environ['LIBRADTRANDIR']
+except:
+    os.environ['LIBRADTRANDIR'] = str(pathlib.Path(
+        pathlib.Path.cwd(),
+        'libRadtran-2.0.6'
+    ))
+else:
+    print('Using system value for LIBRADTRANDIR')
 
 matplotlib.use('GTK4Agg')
 

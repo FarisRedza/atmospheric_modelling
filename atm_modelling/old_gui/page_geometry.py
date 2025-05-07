@@ -197,26 +197,26 @@ class Geometry(Adw.PreferencesPage):
         )
         time_row.add_suffix(widget=self.time_entry)
 
-    def on_sza_clear(self, entry, _):
+    def on_sza_clear(self, entry: Gtk.Entry, _):
         self.sza_entry.set_text(text='')
 
-    def on_phi0_clear(self, entry, _):
+    def on_phi0_clear(self, entry: Gtk.Entry, _):
         self.phi0_entry.set_text(text='')
 
-    def on_phi_clear(self, entry, _):
+    def on_phi_clear(self, entry: Gtk.Entry, _):
         self.phi_entry.set_text(text='')
 
-    def on_umu_clear(self, entry, _):
+    def on_umu_clear(self, entry: Gtk.Entry, _):
         self.umu_entry.set_text(text='')
 
-    def on_day_of_year_clear(self, entry, _):
+    def on_day_of_year_clear(self, entry: Gtk.Entry, _):
         self.day_of_year_entry.set_text(text='')
 
-    def on_latitude_clear(self, entry, _):
+    def on_latitude_clear(self, entry: Gtk.Entry, _):
         self.latitude_entry.set_text(text='')
 
-    def on_longitude_clear(self, entry, _):
+    def on_longitude_clear(self, entry: Gtk.Entry, _):
         self.longitude_entry.set_text(text='')
 
-    def on_time_clear(self, entry, _):
+    def on_time_clear(self, entry: Gtk.Entry, _):
         self.time_entry.set_text(text='')
