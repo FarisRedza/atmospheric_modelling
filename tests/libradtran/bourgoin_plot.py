@@ -19,8 +19,12 @@ except:
 else:
     print('Using system value for LIBRADTRANDIR')
 
-matplotlib.use('GTK4Agg')
-fig = matplotlib.pyplot.figure()
+headless = False
+try:
+    matplotlib.use('GTK4Agg')
+except:
+    headless = True
+    fig = matplotlib.pyplot.figure()
 
 elevation = range(0,91,1)
 
@@ -170,8 +174,9 @@ matplotlib.pyplot.xlim([0, 90])
 matplotlib.pyplot.grid(True)
 matplotlib.pyplot.show()
 
-fig.savefig(
-    'bourgoin_reproduce.png',
-    dpi='figure',
-    bbox_inches='tight'
-)
+if headless == True:
+    fig.savefig(
+        'bourgoin_reproduce.png',
+        dpi='figure',
+        bbox_inches='tight'
+    )
