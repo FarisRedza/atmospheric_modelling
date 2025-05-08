@@ -35,7 +35,7 @@ class PlotGroup(Adw.PreferencesGroup):
         self.ax.set_xlabel(xlabel='Elevation Angle (°)')
         self.ax.set_ylabel(ylabel='Transmittance')
 
-        self.libradtran_plot, = self.ax.plot([],[],label='libRadtran')
+        self.libradtran_plot = self.ax.plot([],[],label='libRadtran')[0]
 
         # satquma
         satquma_theta = []
@@ -54,11 +54,11 @@ class PlotGroup(Adw.PreferencesGroup):
                 satquma_theta.append(float(row['# theta (deg)']))
                 satquma_edir.append(float(row['785 nm']))
 
-        self.satquma_plot, = self.ax.plot(
+        self.satquma_plot = self.ax.plot(
             satquma_theta,
             satquma_edir,
             label='SatQuMA'
-        )
+        )[0]
 
         # bourgoin
         bourgoin_theta = []
@@ -76,11 +76,11 @@ class PlotGroup(Adw.PreferencesGroup):
                 bourgoin_theta.append(float(row['x']))
                 bourgoin_edir.append(float(row[' y']))
 
-        self.bourgoin_plot, = self.ax.plot(
+        self.bourgoin_plot = self.ax.plot(
             bourgoin_theta,
             bourgoin_edir,
             label='Bourgoin'
-        )
+        )[0]
         self.ax.legend()
 
         self.canvas = matplotlib.backends.backend_gtk4agg.FigureCanvasGTK4Agg(

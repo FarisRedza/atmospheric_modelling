@@ -20,6 +20,7 @@ else:
     print('Using system value for LIBRADTRANDIR')
 
 matplotlib.use('GTK4Agg')
+fig = matplotlib.pyplot.figure()
 
 elevation = range(0,91,1)
 
@@ -50,7 +51,7 @@ bourgoin_settings = Simulation(
 bourgoin_settings_theta = []
 bourgoin_settings_edir = []
 for angle in elevation:
-    bourgoin_settings.geometry.sza=90 - angle
+    bourgoin_settings.geometry.sza = 90 - angle
     result = bourgoin_settings.run_uvscpec()
     wavelength, edir, *_ = map(float, result.split())
     bourgoin_settings_theta.append(float(angle))
@@ -96,7 +97,7 @@ custom_settings = Simulation(
 custom_settings_theta = []
 custom_settings_edir = []
 for angle in elevation:
-    custom_settings.geometry.sza=90 - angle
+    custom_settings.geometry.sza = 90 - angle
     result = custom_settings.run_uvscpec()
     wavelength, edir, *_ = map(float, result.split())
     custom_settings_theta.append(float(angle))
@@ -106,6 +107,17 @@ matplotlib.pyplot.plot(
     custom_settings_edir,
     label='CustomSettings'
 )
+
+custom_settings_csv_file = 'bourgoin_reproduce.csv'
+custom_settings_csv_file_path = pathlib.Path(
+    pathlib.Path.cwd(),
+    custom_settings_csv_file
+)
+with open(file=custom_settings_csv_file_path, mode='w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['Elevation (°)','Transmittance'])
+    for angle, transmission in zip(custom_settings_theta, custom_settings_edir):
+        writer.writerow([angle, transmission])
 
 satquma_file = 'MODTRAN_wl_785.0-850.0-5.0nm_h1_500.0km_h0_0.0km_elevation_data.csv'
 satquma_file_path = pathlib.Path(
@@ -148,6 +160,7 @@ matplotlib.pyplot.plot(
     label='BourgoinFigure'
 )
 
+
 matplotlib.pyplot.legend()
 matplotlib.pyplot.xlabel('Elevation Angle (°)')
 matplotlib.pyplot.ylabel('Transmittance')
@@ -156,3 +169,9 @@ matplotlib.pyplot.ylim([0, 1])
 matplotlib.pyplot.xlim([0, 90])
 matplotlib.pyplot.grid(True)
 matplotlib.pyplot.show()
+
+fig.savefig(
+    'bourgoin_reproduce.png',
+    dpi='figure',
+    bbox_inches='tight'
+)
