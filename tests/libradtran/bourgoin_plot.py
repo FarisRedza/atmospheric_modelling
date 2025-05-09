@@ -2,6 +2,7 @@ import sys
 import os
 import pathlib
 import csv
+import platform
 
 import matplotlib
 import matplotlib.pyplot
@@ -20,11 +21,12 @@ else:
     print('Using system value for LIBRADTRANDIR')
 
 headless = False
-try:
-    matplotlib.use('GTK4Agg')
-except:
-    headless = True
-    fig = matplotlib.pyplot.figure()
+if platform.system() == 'Linux':
+    try:
+        matplotlib.use('GTK4Agg')
+    except:
+        headless = True
+        fig = matplotlib.pyplot.figure()
 
 elevation = range(0,91,1)
 

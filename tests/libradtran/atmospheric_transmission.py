@@ -2,6 +2,7 @@ import sys
 import os
 import pathlib
 import tempfile
+import platform
 
 import numpy as np
 import matplotlib
@@ -20,14 +21,14 @@ except:
 else:
     print('Using system value for LIBRADTRANDIR')
 
-headless = False
-try:
-    matplotlib.use('GTK4Agg')
-except:
-    headless = True
-    fig = matplotlib.pyplot.figure()
 
-matplotlib.use('GTK4Agg')
+headless = False
+if platform.system() == 'Linux':
+    try:
+        matplotlib.use('GTK4Agg')
+    except:
+        headless = True
+        fig = matplotlib.pyplot.figure()
 
 sim = Simulation(
     mol_atm=MolAtm(

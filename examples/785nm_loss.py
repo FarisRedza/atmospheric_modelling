@@ -95,28 +95,6 @@ matplotlib.pyplot.plot(
     label='libRadtran'
 )
 
-# SatQuMA MODTRAN data
-satquma_file = 'MODTRAN_wl_785.0-850.0-5.0nm_h1_500.0km_h0_0.0km_elevation_data.csv'
-satquma_file_path = pathlib.Path(
-    pathlib.Path.cwd(),
-    'SatQuMA',
-    'channel',
-    'atmosphere',
-    satquma_file
-)
-satquma_theta = []
-satquma_edir = []
-with open(file=satquma_file_path, newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        satquma_theta.append(float(row['# theta (deg)']))
-        satquma_edir.append(float(row['785 nm']))
-matplotlib.pyplot.plot(
-    satquma_theta,
-    satquma_edir,
-    label='SatQuMA'
-)
-
 matplotlib.pyplot.legend()
 matplotlib.pyplot.xlabel('Elevation Angle (°)')
 matplotlib.pyplot.ylabel('Transmittance')
@@ -127,7 +105,7 @@ matplotlib.pyplot.grid(True)
 
 if headless == True:
     fig.savefig(
-        'bourgoin_reproduce.png',
+        fname='785nm_loss.png',
         dpi='figure',
         bbox_inches='tight'
     )
