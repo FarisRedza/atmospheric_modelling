@@ -9,7 +9,7 @@ from gi.repository import Gtk, Adw, GObject
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 )
-import libRadtran.general_atm
+import libRadtranPy.general_atm
 
 
 class GeneralAtm(Adw.PreferencesPage):
@@ -82,7 +82,7 @@ class GeneralAtm(Adw.PreferencesPage):
             switch: Gtk.Switch,
             gparam: GObject.GParamSpec
     ) -> None:
-        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings: libRadtranPy.general_atm.GeneralAtm = self.get_settings_callback()
         settings.no_absorption = not switch.get_active()
         self.set_settings_callback(settings=settings)
 
@@ -91,7 +91,7 @@ class GeneralAtm(Adw.PreferencesPage):
             switch: Gtk.Switch,
             gparam: GObject.GParamSpec
     ) -> None:
-        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings: libRadtranPy.general_atm.GeneralAtm = self.get_settings_callback()
         settings.no_scattering = not switch.get_active()
         self.set_settings_callback(settings=settings)
 
@@ -100,7 +100,7 @@ class GeneralAtm(Adw.PreferencesPage):
             switch: Gtk.Switch,
             gparam: GObject.GParamSpec
     ) -> None:
-        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings: libRadtranPy.general_atm.GeneralAtm = self.get_settings_callback()
         settings.zout_interpolate = switch.get_active()
         self.set_settings_callback(settings=settings)
 
@@ -109,6 +109,6 @@ class GeneralAtm(Adw.PreferencesPage):
             switch: Gtk.Switch,
             gparam: GObject.GParamSpec
     ) -> None:
-        settings: libRadtran.general_atm.GeneralAtm = self.get_settings_callback()
+        settings: libRadtranPy.general_atm.GeneralAtm = self.get_settings_callback()
         settings.reverse_atmosphere = switch.get_active()
         self.set_settings_callback(settings=settings)

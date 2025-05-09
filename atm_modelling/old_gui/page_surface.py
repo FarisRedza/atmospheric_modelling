@@ -3,7 +3,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Pango, GLib
 
-from atm_modelling.libRadtran import surface
+from atm_modelling.libRadtranPy import surface
 
 class Surface(Adw.PreferencesPage):
     def __init__(self, parent):

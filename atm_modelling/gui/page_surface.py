@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, GObject
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 )
-import libRadtran.surface
+import libRadtranPy.surface
 
 class Surface(Adw.PreferencesPage):
     def __init__(
@@ -56,7 +56,7 @@ class Surface(Adw.PreferencesPage):
             self,
             entry: Gtk.Entry
     ) -> None:
-        settings: libRadtran.surface.Surface = self.get_settings_callback()
+        settings: libRadtranPy.surface.Surface = self.get_settings_callback()
         settings.altitude = float(entry.get_text())
         self.set_settings_callback(settings=settings)
 
@@ -64,6 +64,6 @@ class Surface(Adw.PreferencesPage):
             self,
             entry: Gtk.Entry
     ) -> None:
-        settings: libRadtran.surface.Surface = self.get_settings_callback()
+        settings: libRadtranPy.surface.Surface = self.get_settings_callback()
         settings.albedo = float(entry.get_text())
         self.set_settings_callback(settings=settings)

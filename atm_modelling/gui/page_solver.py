@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, GObject
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 )
-import libRadtran.solver
+import libRadtranPy.solver
 
 class Solver(Adw.PreferencesPage):
     def __init__(
@@ -30,7 +30,7 @@ class Solver(Adw.PreferencesPage):
         settings_group.add(child=solver_row)
 
         solver_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.solver.RTESolver]
+            strings=[i.name for i in libRadtranPy.solver.RTESolver]
         )
         solver_dropdown.connect(
             'notify::selected',
@@ -38,7 +38,7 @@ class Solver(Adw.PreferencesPage):
         )
         solver_dropdown.set_selected(
             position=list(
-                libRadtran.solver.RTESolver
+                libRadtranPy.solver.RTESolver
             ).index(
                 self.get_settings_callback().rte_solver
             )
@@ -52,8 +52,8 @@ class Solver(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.solver.Solver = self.get_settings_callback()
+        settings: libRadtranPy.solver.Solver = self.get_settings_callback()
         settings.rte_solver = list(
-            libRadtran.solver.RTESolver
+            libRadtranPy.solver.RTESolver
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)

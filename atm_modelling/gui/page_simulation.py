@@ -6,6 +6,7 @@ import tempfile
 import pathlib
 
 import matplotlib.backends.backend_gtk4agg
+import matplotlib.backends.backend_gtk4cairo
 import matplotlib.pyplot
 
 import gi
@@ -19,7 +20,7 @@ sys.path.append(
         os.path.pardir
     ))
 )
-import libRadtran.libradtran
+import libRadtranPy.libradtranpy
 
 class PlotGroup(Adw.PreferencesGroup):
     def __init__(
@@ -83,8 +84,17 @@ class PlotGroup(Adw.PreferencesGroup):
         )[0]
         self.ax.legend()
 
-        self.canvas = matplotlib.backends.backend_gtk4agg.FigureCanvasGTK4Agg(
+        # self.canvas = matplotlib.backends.backend_gtk4agg.FigureCanvasGTK4Agg(
+        #     figure=self.fig
+        # )
+        self.canvas = matplotlib.backends.backend_gtk4cairo.FigureCanvasGTK4Cairo(
             figure=self.fig
+        )
+
+        self.style_manager = Adw.StyleManager.get_default()
+        self.style_manager.connect(
+            'notify::dark',
+            self.dark_plot
         )
 
         self.add(child=Gtk.Frame(child=self.canvas))
@@ -99,6 +109,42 @@ class PlotGroup(Adw.PreferencesGroup):
             libradtran_edir.append(float(row['785 nm']))
 
         self.libradtran_plot.set_data(libradtran_theta, libradtran_edir)
+        self.canvas.draw_idle()
+
+    def dark_plot(
+            self,
+            style_manager: Adw.StyleManager,
+            gparam: GObject.GParamSpec
+    ) -> None:
+        if self.style_manager.get_dark() == True:
+            self.fig.set_facecolor('#353535')
+            self.ax.set_facecolor('#353535')
+
+            self.ax.xaxis.label.set_color('white')
+            self.ax.yaxis.label.set_color('white')
+
+            self.ax.tick_params(axis='x', colors='white')
+            self.ax.tick_params(axis='y', colors='white')
+
+            self.ax.spines['bottom'].set_color('white')
+            self.ax.spines['top'].set_color('white')
+            self.ax.spines['left'].set_color('white')
+            self.ax.spines['right'].set_color('white')
+        else:
+            self.fig.set_facecolor('white')
+            self.ax.set_facecolor('white')
+
+            self.ax.xaxis.label.set_color('black')
+            self.ax.yaxis.label.set_color('black')
+
+            self.ax.tick_params(axis='x', colors='black')
+            self.ax.tick_params(axis='y', colors='black')
+
+            self.ax.spines['bottom'].set_color('black')
+            self.ax.spines['top'].set_color('black')
+            self.ax.spines['left'].set_color('black')
+            self.ax.spines['right'].set_color('black')
+
         self.canvas.draw_idle()
 
 class Simulation(Adw.PreferencesPage):
@@ -148,7 +194,7 @@ class Simulation(Adw.PreferencesPage):
         self.add(group=self.plot_group)
 
     def on_run_simulation(self, button: Gtk.Button) -> None:
-        simulation: libRadtran.libradtran.Simulation = self.get_settings_callback()
+        simulation: libRadtranPy.libradtranpy.Simulation = self.get_settings_callback()
         print(simulation)
         elevation = range(0, 91, 1)
         with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=False, suffix='.csv') as csvfile:

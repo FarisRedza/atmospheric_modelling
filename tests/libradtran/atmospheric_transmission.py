@@ -5,10 +5,10 @@ import tempfile
 
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
+import matplotlib.pyplot
 
 sys.path.append(str(pathlib.Path.cwd()))
-from atm_modelling.libRadtran.libradtran import *
+from atm_modelling.libRadtranPy.libradtranpy import *
 
 try:
     os.environ['LIBRADTRANDIR']
@@ -19,6 +19,13 @@ except:
     ))
 else:
     print('Using system value for LIBRADTRANDIR')
+
+headless = False
+try:
+    matplotlib.use('GTK4Agg')
+except:
+    headless = True
+    fig = matplotlib.pyplot.figure()
 
 matplotlib.use('GTK4Agg')
 
@@ -59,12 +66,20 @@ finally:
 wavelength = data[:, 0]
 transmittance = data[:, 1] * 100
 
-plt.figure(figsize=(8, 4))
-plt.plot(wavelength, transmittance, color='blue', linewidth=1)
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Transmittance (%)')
-plt.title('Atmospheric Transmittance Spectrum')
-plt.grid(True)
-plt.xlim(sim.spectral.wavelength[0], sim.spectral.wavelength[1])
-plt.ylim(0, 100)
-plt.show()
+matplotlib.pyplot.figure(figsize=(8, 4))
+matplotlib.pyplot.plot(wavelength, transmittance, color='blue', linewidth=1)
+matplotlib.pyplot.xlabel('Wavelength (nm)')
+matplotlib.pyplot.ylabel('Transmittance (%)')
+matplotlib.pyplot.title('Atmospheric Transmittance Spectrum')
+matplotlib.pyplot.grid(True)
+matplotlib.pyplot.xlim(sim.spectral.wavelength[0], sim.spectral.wavelength[1])
+matplotlib.pyplot.ylim(0, 100)
+
+if headless == True:
+    fig.savefig(
+        'bourgoin_reproduce.png',
+        dpi='figure',
+        bbox_inches='tight'
+    )
+else:
+    matplotlib.pyplot.show()

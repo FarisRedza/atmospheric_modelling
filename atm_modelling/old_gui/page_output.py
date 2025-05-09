@@ -3,7 +3,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Pango, GLib
 
-from atm_modelling.libRadtran import output
+from atm_modelling.libRadtranPy import output
 
 class Output(Adw.PreferencesPage):
     def __init__(self, parent):

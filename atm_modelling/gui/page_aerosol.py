@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, GObject
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 )
-import libRadtran.aerosol
+import libRadtranPy.aerosol
 
 
 class Aerosol(Adw.PreferencesPage):
@@ -44,7 +44,7 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=season_row)
 
         season_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.aerosol.AerosolSeason]
+            strings=[i.name for i in libRadtranPy.aerosol.AerosolSeason]
         )
         season_dropdown.connect(
             'notify::selected',
@@ -73,7 +73,7 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=haze_row)
 
         haze_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.aerosol.AerosolHaze]
+            strings=[i.name for i in libRadtranPy.aerosol.AerosolHaze]
         )
         haze_dropdown.connect(
             'notify::selected',
@@ -88,7 +88,7 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=vulcan_row)
 
         vulcan_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.aerosol.AerosolVulcan]
+            strings=[i.name for i in libRadtranPy.aerosol.AerosolVulcan]
         )
         vulcan_dropdown.connect(
             'notify::selected',
@@ -103,7 +103,7 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=species_row)
 
         species_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.aerosol.AerosolSpecies]
+            strings=[i.name for i in libRadtranPy.aerosol.AerosolSpecies]
         )
         species_dropdown.connect(
             'notify::selected',
@@ -118,7 +118,7 @@ class Aerosol(Adw.PreferencesPage):
         settings_group.add(child=species_library_row)
 
         species_library_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.aerosol.AerosolSpeciesLibrary]
+            strings=[i.name for i in libRadtranPy.aerosol.AerosolSpeciesLibrary]
         )
         species_library_dropdown.connect(
             'notify::selected',
@@ -133,7 +133,7 @@ class Aerosol(Adw.PreferencesPage):
             switch: Gtk.Switch,
             gparam: GObject.GParamSpec
     ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_default = switch.get_active()
         self.set_settings_callback(settings=settings)
 
@@ -142,9 +142,9 @@ class Aerosol(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_season = list(
-            libRadtran.aerosol.AerosolSeason
+            libRadtranPy.aerosol.AerosolSeason
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)
 
@@ -152,7 +152,7 @@ class Aerosol(Adw.PreferencesPage):
             self,
             entry: Gtk.Entry
     ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_visibility = float(entry.get_text())
         self.set_settings_callback(settings=settings)
 
@@ -161,9 +161,9 @@ class Aerosol(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_haze = list(
-            libRadtran.aerosol.AerosolHaze
+            libRadtranPy.aerosol.AerosolHaze
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)
 
@@ -172,9 +172,9 @@ class Aerosol(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_vulcan = list(
-            libRadtran.aerosol.AerosolVulcan
+            libRadtranPy.aerosol.AerosolVulcan
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)
 
@@ -183,9 +183,9 @@ class Aerosol(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_species_file = list(
-            libRadtran.aerosol.AerosolSpecies
+            libRadtranPy.aerosol.AerosolSpecies
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)
 
@@ -194,8 +194,8 @@ class Aerosol(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.aerosol.Aerosol = self.get_settings_callback()
+        settings: libRadtranPy.aerosol.Aerosol = self.get_settings_callback()
         settings.aerosol_species_library = list(
-            libRadtran.aerosol.AerosolSpecies
+            libRadtranPy.aerosol.AerosolSpecies
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)

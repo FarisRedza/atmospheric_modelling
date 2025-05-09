@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, GObject
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 )
-import libRadtran.mol_atm
+import libRadtranPy.mol_atm
 
 class MolAtm(Adw.PreferencesPage):
     def __init__(
@@ -30,7 +30,7 @@ class MolAtm(Adw.PreferencesPage):
         settings_group.add(child=atmosphere_row)
 
         atmosphere_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.mol_atm.Atmosphere]
+            strings=[i.name for i in libRadtranPy.mol_atm.Atmosphere]
         )
         atmosphere_dropdown.connect(
             'notify::selected',
@@ -39,7 +39,7 @@ class MolAtm(Adw.PreferencesPage):
         print(self.get_settings_callback())
         atmosphere_dropdown.set_selected(
             position=list(
-                libRadtran.mol_atm.Atmosphere
+                libRadtranPy.mol_atm.Atmosphere
             ).index(
                 self.get_settings_callback().atmosphere_file
             )
@@ -53,8 +53,8 @@ class MolAtm(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.mol_atm.MolAtm = self.get_settings_callback()
+        settings: libRadtranPy.mol_atm.MolAtm = self.get_settings_callback()
         settings.atmosphere_file = list(
-            libRadtran.mol_atm.Atmosphere
+            libRadtranPy.mol_atm.Atmosphere
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)

@@ -7,7 +7,7 @@ import matplotlib
 import matplotlib.pyplot
 
 sys.path.append(str(pathlib.Path.cwd()))
-from atm_modelling.libRadtran.libradtran import *
+from atm_modelling.libRadtranPy.libradtranpy import *
 
 try:
     os.environ['LIBRADTRANDIR']
@@ -18,6 +18,13 @@ except:
     ))
 else:
     print('Using system value for LIBRADTRANDIR')
+
+headless = False
+try:
+    matplotlib.use('GTK4Agg')
+except:
+    headless = True
+    fig = matplotlib.pyplot.figure()
 
 matplotlib.use('GTK4Agg')
 
@@ -115,4 +122,12 @@ matplotlib.pyplot.title('785 nm Downlink')
 matplotlib.pyplot.ylim([0, 1])
 matplotlib.pyplot.xlim([0, 90])
 matplotlib.pyplot.grid(True)
-matplotlib.pyplot.show()
+
+if headless == True:
+    fig.savefig(
+        'bourgoin_reproduce.png',
+        dpi='figure',
+        bbox_inches='tight'
+    )
+else:
+    matplotlib.pyplot.show()

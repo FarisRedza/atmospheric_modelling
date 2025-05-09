@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, GObject
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 )
-import libRadtran.spectral
+import libRadtranPy.spectral
 
 class Spectral(Adw.PreferencesPage):
     def __init__(
@@ -44,7 +44,7 @@ class Spectral(Adw.PreferencesPage):
         settings_group.add(child=source_row)
 
         source_dropdown = Gtk.DropDown().new_from_strings(
-            strings=[i.name for i in libRadtran.spectral.Source]
+            strings=[i.name for i in libRadtranPy.spectral.Source]
         )
         source_dropdown.connect(
             'notify::selected',
@@ -52,7 +52,7 @@ class Spectral(Adw.PreferencesPage):
         )
         source_dropdown.set_selected(
             position=list(
-                libRadtran.spectral.Source
+                libRadtranPy.spectral.Source
             ).index(
                 self.get_settings_callback().source
             )
@@ -65,7 +65,7 @@ class Spectral(Adw.PreferencesPage):
             self,
             entry: Gtk.Entry
     ) -> None:
-        settings: libRadtran.spectral.Spectral = self.get_settings_callback()
+        settings: libRadtranPy.spectral.Spectral = self.get_settings_callback()
         settings.wavelength = [float(entry.get_text()), float(entry.get_text())]
         self.set_settings_callback(settings=settings)
 
@@ -74,8 +74,8 @@ class Spectral(Adw.PreferencesPage):
             dropdown: Gtk.DropDown,
             gparam: GObject.GParamSpec
         ) -> None:
-        settings: libRadtran.spectral.Spectral = self.get_settings_callback()
+        settings: libRadtranPy.spectral.Spectral = self.get_settings_callback()
         settings.source = list(
-            libRadtran.spectral.Source
+            libRadtranPy.spectral.Source
         )[dropdown.get_selected()]
         self.set_settings_callback(settings=settings)
