@@ -14,6 +14,10 @@ class RTESolver(enum.Enum):
     SSS = 'sss'
     SSLIDAR = 'sslidar'
 
+    @classmethod
+    def from_index(cls, index: int) -> 'RTESolver':
+        return list(cls)[index]
+
 @dataclasses.dataclass
 class Solver:
     rte_solver: RTESolver = RTESolver.DISORT

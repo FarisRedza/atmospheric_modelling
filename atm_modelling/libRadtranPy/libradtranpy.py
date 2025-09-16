@@ -14,19 +14,21 @@ from .monte_carlo import *
 from .geometry import *
 from .output import *
 
+from .units import *
+
 @dataclasses.dataclass
 class Simulation:
-    spectral: Spectral = None
-    general_atm: GeneralAtm = None
-    mol_atm: MolAtm = None
-    aerosol: Aerosol = None
-    profile: Profile = None
-    clouds: Clouds = None
-    surface: Surface = None
-    solver: Solver = None
-    monte_carlo: MonteCarlo = None
-    geometry: Geometry = None
-    output: Output = None
+    spectral: Spectral | None = None
+    general_atm: GeneralAtm | None = None
+    mol_atm: MolAtm | None = None
+    aerosol: Aerosol | None = None
+    profile: Profile | None = None
+    clouds: Clouds | None = None
+    surface: Surface | None = None
+    solver: Solver | None = None
+    monte_carlo: MonteCarlo | None = None
+    geometry: Geometry | None = None
+    output: Output | None = None
 
     def generate_uvspec_input(self) -> str:
         parameters = []

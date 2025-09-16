@@ -7,14 +7,14 @@ from .units import *
 
 @dataclasses.dataclass
 class Geometry:
-    sza: degrees = None # zengith (elevation) angle of the sun
-    phi0: float = None # azimuthal (horizon) angle of the sun
-    phi: float = None # viewing azimuthal angle
-    umu: float = None # viewing zenith angle
-    day_of_year: float = None
-    latitude: str = None
-    longitude: str = None
-    time: str = None
+    sza: degrees | None = None # zengith (elevation) angle of the sun
+    phi0: float | None = None # azimuthal (horizon) angle of the sun
+    phi: float | None = None # viewing azimuthal angle
+    umu: float | None = None # viewing zenith angle
+    day_of_year: float | None = None
+    latitude: str | None = None
+    longitude: str | None = None
+    time: str | None = None
 
     def __post_init__(self):
         if not isinstance(self.sza, typing.Union[float, int, None]):
@@ -40,7 +40,7 @@ class Geometry:
         
         if not isinstance(self.time, typing.Union[str, None]):
             raise ValueError(f'Invalid time: {self.time}')
-        
+
     def generate_uvspec_input(self) -> str:
         parameters = []
         def add_parameter(parameter, prefix: str = '', suffix: str = ''):

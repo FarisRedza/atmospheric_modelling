@@ -36,9 +36,9 @@ downlink_sim = Simulation(
     aerosol=Aerosol(
         aerosol_default=True,
         # aerosol_season=AerosolSeason.SPRING_SUMMER,
-        # aerosol_visibility=50,
-        # aerosol_haze=AerosolHaze.RURAL,
-        # aerosol_vulcan=AerosolVulcan.BACKGROUND_AEROSOLS,
+        aerosol_visibility=km(5),
+        aerosol_haze=AerosolHaze.RURAL,
+        aerosol_vulcan=AerosolVulcan.BACKGROUND_AEROSOLS,
         # aerosol_species_file=AerosolSpecies.CONTINENTAL_CLEAN,
         # aerosol_species_library=AerosolSpeciesLibrary.OPAC
     ),
@@ -49,7 +49,7 @@ downlink_sim = Simulation(
         # reverse_atmosphere=True
     ),
     mol_atm=MolAtm(
-        # atmosphere_file=Atmosphere.MIDLATTITUDESUMMER,
+        atmosphere_file=Atmosphere.MIDLATTITUDESUMMER,
         # mol_abs_param=(CKScheme.REPTRAN, 'coarse'),
         # mol_modify=['O3 200 DU', 'H2O 20 MM'],
         # crs_model=(MolID.RAYLEIGH, CRSModel.BODHAINE)
@@ -63,7 +63,7 @@ downlink_sim = Simulation(
     ),
     surface=Surface(
         # altitude=0,
-        albedo=1,
+        albedo=0.3,
     ),
     spectral=Spectral(
         wavelength=[785, 785]
@@ -75,7 +75,7 @@ downlink_sim = Simulation(
         quiet=True,
         # verbose=True,
         output_user='lambda edir',
-        output_quantity=OutputQuantity.REFLECTIVITY,
+        output_quantity=OutputQuantity.TRANSMITTANCE,
         # output_process=OutputProcess.PER_NM,
         # zout=ZOut.TOA
     )
@@ -93,70 +93,6 @@ matplotlib.pyplot.plot(
     libradtran_theta,
     libradtran_edir,
     label='libRadtran'
-)
-
-downlink_sim_5 = Simulation(
-    aerosol=Aerosol(
-        aerosol_default=True,
-        # aerosol_season=AerosolSeason.SPRING_SUMMER,
-        # aerosol_visibility=50,
-        # aerosol_haze=AerosolHaze.RURAL,
-        # aerosol_vulcan=AerosolVulcan.BACKGROUND_AEROSOLS,
-        # aerosol_species_file=AerosolSpecies.CONTINENTAL_CLEAN,
-        # aerosol_species_library=AerosolSpeciesLibrary.OPAC
-    ),
-    general_atm=GeneralAtm(
-        # no_absorption=True,
-        # no_scattering=True,
-        # zout_interpolate=True,
-        # reverse_atmosphere=True
-    ),
-    mol_atm=MolAtm(
-        # atmosphere_file=Atmosphere.MIDLATTITUDESUMMER,
-        # mol_abs_param=(CKScheme.REPTRAN, 'coarse'),
-        # mol_modify=['O3 200 DU', 'H2O 20 MM'],
-        # crs_model=(MolID.RAYLEIGH, CRSModel.BODHAINE)
-    ),
-    geometry=Geometry(
-        # phi=0,
-        # umu=-1,
-        # latitude='N 56.405',
-        # longitude='W 3.183',
-        # time='2025 3 18 13, 5 37.8075'
-    ),
-    surface=Surface(
-        altitude=km(5),
-        albedo=1,
-    ),
-    spectral=Spectral(
-        wavelength=[785, 785]
-    ),
-    solver=Solver(
-        rte_solver=RTESolver.DISORT
-    ),
-    output=Output(
-        quiet=True,
-        # verbose=True,
-        output_user='lambda edir',
-        output_quantity=OutputQuantity.REFLECTIVITY,
-        # output_process=OutputProcess.PER_NM,
-        # zout=ZOut.TOA
-    )
-)
-
-libradtran_theta_5 = []
-libradtran_edir_5 = []
-for angle in elevation:
-    sza = degrees(90 - angle)
-    downlink_sim.geometry.sza = sza
-    result = downlink_sim.run_uvscpec()
-    wavelength, edir, *_ = map(float, result.split())
-    libradtran_theta_5.append(float(angle))
-    libradtran_edir_5.append(float(edir))
-matplotlib.pyplot.plot(
-    libradtran_theta_5,
-    libradtran_edir_5,
-    label='libRadtran 5km'
 )
 
 matplotlib.pyplot.legend()

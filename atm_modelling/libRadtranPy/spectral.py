@@ -10,7 +10,7 @@ class Source(enum.Enum):
 
 @dataclasses.dataclass
 class Spectral:
-    wavelength: typing.List[nm] = None
+    wavelength: typing.List[nm] | None = None
     source: Source = Source.SOLAR
 
     def __post_init__(self):  

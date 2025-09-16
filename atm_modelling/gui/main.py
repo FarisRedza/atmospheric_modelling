@@ -89,7 +89,6 @@ class SideBar(Gtk.Revealer):
             css_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
-        header_bar
         self.side_bar_box.append(child=header_bar)
 
         menu_button = Gtk.MenuButton(
@@ -106,7 +105,7 @@ class MainBox(Gtk.Box):
     def __init__(
             self,
             set_show_sidebar_callback: typing.Callable
-    ):
+    ) -> None:
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             hexpand=True,
@@ -144,12 +143,16 @@ class MainBox(Gtk.Box):
         self.content_box.append(child=stack)
 
 class MainWindow(Adw.ApplicationWindow):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.set_title(title='libRadtran')
-        self.set_default_size(width=750, height=720)
-        self.set_size_request(width=430, height=130)
-
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            title='libRadtran',
+            default_width=750,
+            default_height=720,
+            width_request=430,
+            height_request=130,
+            *args,
+            **kwargs
+    )
         self.show_sidebar = True
         self.settings = libRadtranPy.libradtranpy.Simulation(
             aerosol=libRadtranPy.aerosol.Aerosol(),
@@ -283,84 +286,117 @@ class MainWindow(Adw.ApplicationWindow):
         stack_sidebar.set_stack(stack=stack)
         self.sidebar.add_stack_sidebar(stack_sidebar=stack_sidebar)
 
-    def set_show_sidebar(self, button: Gtk.Button):
+    def set_show_sidebar(self, button: Gtk.Button) -> None:
         self.show_sidebar = not self.show_sidebar
         self.sidebar.set_reveal_child(self.show_sidebar)
 
     def get_show_sidebar(self) -> bool:
         return self.show_sidebar
     
-    def set_settings(self, settings: libRadtranPy.libradtranpy.Simulation) -> None:
+    def set_settings(
+            self,
+            settings: libRadtranPy.libradtranpy.Simulation
+    ) -> None:
         self.settings = settings
         print(self.settings)
 
     def get_settings(self) -> libRadtranPy.libradtranpy.Simulation:
         return self.settings
 
-    def set_settings_spectral(self, settings: libRadtranPy.spectral.Spectral) -> None:
+    def set_settings_spectral(
+            self,
+            settings: libRadtranPy.spectral.Spectral
+    ) -> None:
         self.settings.spectral = settings
         print(self.settings.spectral)
 
     def get_settings_spectral(self) -> libRadtranPy.spectral.Spectral:
         return self.settings.spectral
     
-    def set_settings_general_atm(self, settings: libRadtranPy.general_atm.GeneralAtm) -> None:
+    def set_settings_general_atm(
+            self,
+            settings: libRadtranPy.general_atm.GeneralAtm
+    ) -> None:
         self.settings.general_atm = settings
         print(self.settings.general_atm)
 
     def get_settings_general_atm(self) -> libRadtranPy.general_atm.GeneralAtm:
         return self.settings.general_atm
     
-    def set_settings_mol_atm(self, settings: libRadtranPy.mol_atm.MolAtm) -> None:
+    def set_settings_mol_atm(
+            self,
+            settings: libRadtranPy.mol_atm.MolAtm
+    ) -> None:
         self.settings.mol_atm = settings
         print(self.settings.mol_atm)
 
     def get_settings_mol_atm(self) -> libRadtranPy.mol_atm.MolAtm:
         return self.settings.mol_atm
     
-    def set_settings_aerosol(self, settings: libRadtranPy.aerosol.Aerosol) -> None:
+    def set_settings_aerosol(
+            self,
+            settings: libRadtranPy.aerosol.Aerosol
+    ) -> None:
         self.settings.aerosol = settings
         print(self.settings.aerosol)
 
     def get_settings_aerosol(self) -> libRadtranPy.aerosol.Aerosol:
         return self.settings.aerosol
     
-    def set_settings_clouds(self, settings: libRadtranPy.clouds.Clouds) -> None:
+    def set_settings_clouds(
+            self,
+            settings: libRadtranPy.clouds.Clouds
+    ) -> None:
         self.settings.clouds = settings
         print(self.settings.clouds)
 
     def get_settings_clouds(self) -> libRadtranPy.clouds.Clouds:
         return self.settings.clouds
     
-    def set_settings_surface(self, settings: libRadtranPy.surface.Surface) -> None:
+    def set_settings_surface(
+            self,
+            settings: libRadtranPy.surface.Surface
+    ) -> None:
         self.settings.surface = settings
         print(self.settings.surface)
 
     def get_settings_surface(self) -> libRadtranPy.surface.Surface:
         return self.settings.surface
     
-    def set_settings_solver(self, settings: libRadtranPy.solver.Solver) -> None:
+    def set_settings_solver(
+            self,
+            settings: libRadtranPy.solver.Solver
+    ) -> None:
         self.settings.solver = settings
         print(self.settings.solver)
 
     def get_settings_solver(self) -> libRadtranPy.solver.Solver:
         return self.settings.solver
     
-    def set_settings_monte_carlo(self, settings: libRadtranPy.monte_carlo.MonteCarlo) -> None:
+    def set_settings_monte_carlo(
+            self,
+            settings: libRadtranPy.monte_carlo.MonteCarlo
+    ) -> None:
         self.settings.monte_carlo = settings
         print(self.settings.monte_carlo)
 
     def get_settings_monte_carlo(self) -> libRadtranPy.monte_carlo.MonteCarlo:
         return self.settings.monte_carlo
     
-    def set_settings_geometry(self, settings: libRadtranPy.geometry.Geometry) -> None:
+    def set_settings_geometry(
+            self,
+            settings: libRadtranPy.geometry.Geometry
+    ) -> None:
         self.settings.geometry = settings
         print(self.settings.geometry)
 
     def get_settings_geometry(self) -> libRadtranPy.geometry.Geometry:
         return self.settings.geometry
     
-    def set_settings_output(self, settings: libRadtranPy.output.Output) -> None:
+    def set_settings_output(
+            self,
+            settings: libRadtranPy.output.Output
+    ) -> None:
         self.settings.output = settings
         print(self.settings.output)
 
