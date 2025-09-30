@@ -1,6 +1,7 @@
 import sys
 import pathlib
 import typing
+import time
 
 import gi
 gi.require_version('Gtk', '4.0')
@@ -11,6 +12,7 @@ import matplotlib.backends.backend_gtk4agg
 import matplotlib.figure
 import matplotlib.cm
 import matplotlib.image
+import mpl_toolkits.mplot3d.art3d
 import scipy.ndimage
 import numpy as np
 
@@ -72,7 +74,7 @@ class OrbitGroup(Adw.PreferencesGroup):
         r = self._earth_radius + self._orbit_altitude
         self._orbit_period = 2*np.pi * np.sqrt(r**3 / mu)
 
-        self._timescale = 100
+        self._timescale = 25
 
         self._earth_angle = 0
         self._earth_rotation_speed = 0.5
@@ -171,13 +173,14 @@ class OrbitGroup(Adw.PreferencesGroup):
         )
         self.add(child=timescale_row)
 
+        self._last_update = time.time()
         self.start_animated_plot()
     
     def draw_earth(
         self,
         image_file: str,
-        mesh_resolution: int = 25,
-        texture_scale: float = 0.5
+        mesh_resolution: int = 30,
+        texture_scale: float = 0.2
     ) -> None:
         texture = matplotlib.image.imread(image_file)
         texture_scaled = scipy.ndimage.zoom(
@@ -198,56 +201,38 @@ class OrbitGroup(Adw.PreferencesGroup):
         j = (phi / (2*np.pi) * (texture_scaled.shape[1]-1)).astype(int)
         self._earth_facecolors = texture_scaled[i, j] / 255.0
 
-        self._earth_wireframe = self.axes.plot_wireframe(
-            self._earth_x, self._earth_y, self._earth_z,
-            rstride=2,
-            cstride=2,
-            color='k',
-            linewidth=0.5,
-            alpha=0.5
-        )
+        self._earth_verts = np.stack([self._earth_x, self._earth_y, self._earth_z], axis=-1)
 
-        self._earth_surface = self.axes.plot_surface(
-            self._earth_x, self._earth_y, self._earth_z,
-            facecolors=self._earth_facecolors,
-            rstride=1,
-            cstride=1,
-            antialiased=False
+        # Precompute quad indices
+        self._faces_idx = []
+        for i in range(self._earth_verts.shape[0]-1):
+            for j in range(self._earth_verts.shape[1]-1):
+                self._faces_idx.append([(i, j), (i+1, j), (i+1, j+1), (i, j+1)])
+
+        # Build initial faces
+        faces = [[self._earth_verts[i, j] for (i, j) in face] for face in self._faces_idx]
+        colors = [self._earth_facecolors[i, j] for (i, j) in [face[0] for face in self._faces_idx]]
+
+        self._earth_poly = mpl_toolkits.mplot3d.art3d.Poly3DCollection(
+            faces,
+            facecolors=colors,
+            linewidths=0
         )
+        self.axes.add_collection3d(self._earth_poly)
 
     def rotate_earth(self, angle: float) -> None:
         angle_rad = np.radians(angle)
+        cos_a, sin_a = np.cos(angle_rad), np.sin(angle_rad)
+        R = np.array([[cos_a, -sin_a, 0],
+                    [sin_a,  cos_a, 0],
+                    [0,      0,     1]])
 
-        cos_a = np.cos(angle_rad)
-        sin_a = np.sin(angle_rad)
+        rotated_verts = self._earth_verts.reshape(-1, 3) @ R.T
+        rotated_verts = rotated_verts.reshape(self._earth_verts.shape)
 
-        x0, y0, z0 = self._earth_x, self._earth_y, self._earth_z
-
-        x_rot = cos_a * x0 - sin_a * y0
-        y_rot = sin_a * x0 + cos_a * y0
-        z_rot = z0
-
-        self._earth_surface.remove()
-        self._earth_wireframe.remove()
-
-        self._earth_wireframe = self.axes.plot_wireframe(
-            x_rot, y_rot, z_rot,
-            rstride=2,
-            cstride=2,
-            color='k',
-            linewidth=0.5,
-            alpha=0.5
-        )
-
-        self._earth_surface = self.axes.plot_surface(
-            x_rot, y_rot, z_rot,
-            facecolors=self._earth_facecolors,
-            rstride=1,
-            cstride=1,
-            antialiased=False
-        )
-
-        self.canvas.draw_idle()
+        # Rebuild faces from precomputed indices
+        faces_rot = [[rotated_verts[i, j] for (i, j) in face] for face in self._faces_idx]
+        self._earth_poly.set_verts(faces_rot)
 
     def start_animated_plot(self) -> None:
         earth_deg_per_sec = 360/(24*3600)
@@ -255,10 +240,18 @@ class OrbitGroup(Adw.PreferencesGroup):
         sat_deg_per_sec = 360 / self._orbit_period
 
         def update() -> bool:
-            self._earth_angle += earth_deg_per_sec * self._timescale * 0.05
-            self._satellite_angle += np.radians(sat_deg_per_sec * self._timescale * 0.05)
+            now = time.time()
+            dt = now - self._last_update
+            self._last_update = now
+
+            dt_scaled = dt * self.get_timescale()
+
+            self._earth_angle += earth_deg_per_sec * self._timescale * dt_scaled
+            self._satellite_angle += np.radians(sat_deg_per_sec * self._timescale * dt_scaled)
+
             self.rotate_earth(self._earth_angle)
             self.update_satellite()
+            self.canvas.draw_idle()
             return True
 
         GLib.timeout_add(50, update)
@@ -277,7 +270,6 @@ class OrbitGroup(Adw.PreferencesGroup):
         )
         self._orbit_line.set_3d_properties(self._orbit_z)
         self._orbit_line.set_zorder(10)
-        self.canvas.draw_idle()
 
     def update_satellite(self) -> None:
         orbit_radius = (self._earth_radius + self._orbit_altitude) / self._earth_radius
