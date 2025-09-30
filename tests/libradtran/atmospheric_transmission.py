@@ -9,7 +9,7 @@ import matplotlib
 import matplotlib.pyplot
 
 sys.path.append(str(pathlib.Path.cwd()))
-from atm_modelling.libRadtranPy.libradtranpy import *
+from loss.libRadtranPy.libradtranpy import *
 
 try:
     os.environ['LIBRADTRANDIR']

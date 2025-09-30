@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot
 
 sys.path.append(str(pathlib.Path.cwd()))
-from atm_modelling.libRadtranPy.libradtranpy import *
+from loss.libRadtranPy.libradtranpy import *
 
 try:
     os.environ['LIBRADTRANDIR']
@@ -36,7 +36,7 @@ downlink_sim = Simulation(
     aerosol=Aerosol(
         aerosol_default=True,
         # aerosol_season=AerosolSeason.SPRING_SUMMER,
-        aerosol_visibility=km(5),
+        aerosol_visibility=5,
         aerosol_haze=AerosolHaze.RURAL,
         aerosol_vulcan=AerosolVulcan.BACKGROUND_AEROSOLS,
         # aerosol_species_file=AerosolSpecies.CONTINENTAL_CLEAN,
@@ -51,7 +51,7 @@ downlink_sim = Simulation(
     mol_atm=MolAtm(
         atmosphere_file=Atmosphere.MIDLATTITUDESUMMER,
         # mol_abs_param=(CKScheme.REPTRAN, 'coarse'),
-        # mol_modify=['O3 200 DU', 'H2O 20 MM'],
+        mol_modify=['CO2 7.84e21 CM_2'],
         # crs_model=(MolID.RAYLEIGH, CRSModel.BODHAINE)
     ),
     geometry=Geometry(
@@ -62,7 +62,7 @@ downlink_sim = Simulation(
         # time='2025 3 18 13, 5 37.8075'
     ),
     surface=Surface(
-        # altitude=0,
+        altitude=0,
         albedo=0.3,
     ),
     spectral=Spectral(
@@ -80,6 +80,7 @@ downlink_sim = Simulation(
         # zout=ZOut.TOA
     )
 )
+print(downlink_sim.generate_uvspec_input())
 libradtran_theta = []
 libradtran_edir = []
 for angle in elevation:
@@ -87,8 +88,8 @@ for angle in elevation:
     downlink_sim.geometry.sza = sza
     result = downlink_sim.run_uvscpec()
     wavelength, edir, *_ = map(float, result.split())
-    libradtran_theta.append(float(angle))
-    libradtran_edir.append(float(edir))
+    libradtran_theta.append(angle)
+    libradtran_edir.append(edir)
 matplotlib.pyplot.plot(
     libradtran_theta,
     libradtran_edir,

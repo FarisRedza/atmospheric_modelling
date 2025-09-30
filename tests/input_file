@@ -1,0 +1,19 @@
+# # Location of atmospheric profile file.
+# atmosphere_file ../data/atmmod/afglus.dat
+aerosol_default
+# aerosol_season 1
+aerosol_visibility 5
+# aerosol_haze 1
+# aerosol_vulcan 1
+aerosol_species_file continental_clean
+# aerosol_species_library OPAC
+# source solar
+# wavelength 785 787 # Wavelength range [nm]
+# rte_solver disort
+# quiet
+# output_user lambda edir
+# output_quantity reflectivity
+# sza 90
+
+wavelength 785
+atmosphere_file ../data/atmmod/afglms.dat
