@@ -29,7 +29,7 @@ class DiffractionGroup(Adw.PreferencesGroup):
         self._turbulence = simulation.turbulence
         self._ground_level_turbulence_strength = simulation.ground_level_turbulence_strength
         self._wind_speed = simulation.wind_speed
-        
+
         self.simulation = diffraction.DiffractionSim(
             sat_altitude=self.get_sat_altitude(),
             ogs_altitude=self.get_ogs_altitude(),
@@ -62,7 +62,8 @@ class DiffractionGroup(Adw.PreferencesGroup):
             title='Wavelength',
             value=self.get_wavelength(),
             placeholder_text='m',
-            signal='changed'
+            signal='changed',
+            sensitive=False
         )
         self.add(child=wavelength_row)
 

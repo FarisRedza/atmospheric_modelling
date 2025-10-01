@@ -2,7 +2,6 @@ import typing
 import dataclasses
 
 import numpy as np
-import scipy.interpolate
 import scipy.special
 import scipy.optimize
 import scipy.integrate
@@ -62,6 +61,7 @@ class DiffractionSim:
     turbulence: bool
     ground_level_turbulence_strength: float = 1.7e-14
     wind_speed: float = 21.0
+    minimum_elevation: float = 10.0
     
     def run_sim(self) -> DiffractionSimResult:
         omega = np.sqrt((G_CONST * EARTH_MASS) / (EARTH_RADIUS + self.sat_altitude)**3)
@@ -93,8 +93,7 @@ class DiffractionSim:
                 zenith_offset=zenith_offset
             )
         )
-
-        elevation_max = np.deg2rad(90)
+        elevation_max_rad = np.deg2rad(90)
 
         zenith_offset = scipy.optimize.bisect(
             f=equation_for_xi,
@@ -104,10 +103,10 @@ class DiffractionSim:
                 transmit_distance,
                 self.sat_altitude,
                 self.ogs_altitude,
-                elevation_max
+                elevation_max_rad
             )
         )
-
+        
         t_root_tuple = scipy.optimize.bisect(
             f=elevation_zero,
             a=0,
@@ -117,7 +116,7 @@ class DiffractionSim:
         t_root = t_root_tuple[0] if isinstance(t_root_tuple, tuple) else t_root_tuple
         t_range = int(np.floor(t_root))
 
-        times = np.linspace(-t_range, t_range, 500)
+        times_full = np.linspace(-t_range, t_range, 500)
 
         if self.turbulence:
             refractive_index_structure_constant = lambda z, A, v: 0.00594 * (v/27)**2 * (z*1e-5)**10 * np.exp(-z/1000) + 2.7e-16 * np.exp(-z/1500) + A * np.exp(-z/100)
@@ -139,33 +138,38 @@ class DiffractionSim:
             )
             transverse_coherence_length = lambda wavelength, zenith_offset: (1.46/np.cos(zenith_offset) * (2*np.pi / wavelength)**2 * integral)**(-3/5)
             beam_waist = lambda wavelength, distance, zenith_offset: (2*np.sqrt(2) * distance * wavelength) / (np.pi * transverse_coherence_length(wavelength, zenith_offset))
-            diffraction_loss = calc_diffraction_loss(
+            diffraction_loss_full = calc_diffraction_loss(
                 sat_telescope_diameter=self.sat_telescope_diameter,
                 divergence_FWHM=self.divergence_FWHM,
-                distance=transmit_distance(time=times, zenith_offset=zenith_offset),
+                distance=transmit_distance(time=times_full, zenith_offset=zenith_offset),
                 zenith_offset=zenith_offset,
                 wavelength=self.wavelength,
                 beam_waist=beam_waist
             )
         else:
-            diffraction_loss = calc_diffraction_loss(
+            diffraction_loss_full = calc_diffraction_loss(
                 sat_telescope_diameter=self.sat_telescope_diameter,
                 divergence_FWHM=self.divergence_FWHM,
-                distance=transmit_distance(time=times, zenith_offset=zenith_offset),
+                distance=transmit_distance(time=times_full, zenith_offset=zenith_offset),
                 zenith_offset=zenith_offset
             )
-        elevations: np.typing.NDArray[np.int64] = np.degrees(
+        elevations_full: np.typing.NDArray[np.int64] = np.degrees(
             elevation(
-                time=times,
+                time=times_full,
                 zenith_offset=zenith_offset,
                 sat_altitude=self.sat_altitude
             )
         )
 
-        # diffraction_dB = -10*np.log10(diffraction_loss)
+        mask = elevations_full >= self.minimum_elevation
+        times = times_full[mask]
+        times_norm = times - times[0]
+        transmissions = diffraction_loss_full[mask]
+        elevations = elevations_full[mask]
+
         return DiffractionSimResult(
-            times=times,
-            transmissions=diffraction_loss,
+            times=times_norm,
+            transmissions=transmissions,
             zenith_offset=zenith_offset,
             elevations=elevations
         )
