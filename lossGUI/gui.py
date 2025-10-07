@@ -1,15 +1,13 @@
 import sys
 import os
 import pathlib
-import typing
 import os
 import signal
 
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-# gi.require_version('GioUnix', '2.0')
-from gi.repository import Gtk, Gdk, Adw, GObject, Gio
+from gi.repository import Gtk, Gdk, Adw, GObject
 
 sys.path.append(str(pathlib.Path.cwd()))
 import loss.libRadtranPy.libradtranpy as libradtranpy
@@ -20,16 +18,6 @@ import page_diffraction
 import page_libradtran
 import page_background_light
 import page_simulation
-
-try:
-    os.environ['LIBRADTRANDIR']
-except:
-    os.environ['LIBRADTRANDIR'] = str(pathlib.Path(
-        pathlib.Path.cwd(),
-        'libRadtran-2.0.6'
-    ))
-else:
-    print('Using system value for LIBRADTRANDIR')
 
 class SideBar(Gtk.Revealer):
     def __init__(self) -> None:

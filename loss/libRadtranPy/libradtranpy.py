@@ -1,6 +1,6 @@
 import dataclasses
 import subprocess
-import os
+import pathlib
 import math
 
 from .spectral import *
@@ -39,9 +39,15 @@ class Simulation:
     monte_carlo: MonteCarlo | None = None
     geometry: Geometry | None = None
     output: Output | None = None
+    _libRadtran_version = '2.0.6'
+    _libRadtran_dir = pathlib.Path(__file__).parent.parent.parent.joinpath(
+        f'libRadtran-{_libRadtran_version}',
+    )
 
     def generate_uvspec_input(self) -> str:
         parameters = []
+        data_dir = self._libRadtran_dir.joinpath('data')
+        parameters.append(f'data_files_path {data_dir}')
         def add_parameter(parameter):
             if parameter is not None:
                 parameters.append(parameter.generate_uvspec_input())
@@ -60,22 +66,27 @@ class Simulation:
         return '\n'.join(parameters)
 
     def run_uvscpec(self) -> str:
-        cwd = os.getcwd()
-        os.chdir(os.path.join(os.environ['LIBRADTRANDIR'],'examples'))
         result = subprocess.run(
-            ['../bin/uvspec'],
+            [str(self._libRadtran_dir.joinpath(
+                'bin',
+                'uvspec'
+            ))],
             input=self.generate_uvspec_input(),
             stdout=subprocess.PIPE,
             text=True,
             check=True
         )
-        os.chdir(cwd)
         return result.stdout
 
-    def run_transmission_against_elevation(self) -> SimulationResult:
+    def run_transmission_against_elevation(
+            self,
+            min_elevation: int = 0,
+            max_elevation: int = 90,
+            elevation_step: int = 1
+    ) -> SimulationResult:
         atm_theta = []
         atm_edir = []
-        for angle in range(0, 91, 1):
+        for angle in range(min_elevation, max_elevation+elevation_step, elevation_step):
             self.geometry.sza = 90 - angle
             result = self.run_uvscpec()
             result_wavelength, result_edir, *_ = map(float, result.split())

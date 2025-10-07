@@ -6,7 +6,9 @@ simulation_file = 'qeyssat_2035_direct_overpass.json';
 % disp(['Running simulation: ', simulation_file]);
 
 % add qrackling to path
-qrackling_dir = '../../Qrackling';
+% qrackling_dir = '../../Qrackling';
+% qrackling_dir = '/home/faris/Documents/MATLAB/Qrackling-1.0.01';
+qrackling_dir = '/home/faris/Documents/MATLAB/Qrackling-1.0.0-beta.2';
 addpath(genpath(qrackling_dir))
 
 wdir = pwd();

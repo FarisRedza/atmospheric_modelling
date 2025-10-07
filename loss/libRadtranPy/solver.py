@@ -21,6 +21,7 @@ class RTESolver(enum.Enum):
 @dataclasses.dataclass
 class Solver:
     rte_solver: RTESolver = RTESolver.DISORT
+    number_of_streams: int | None = None
 
     def __post_init__(self):
         if not isinstance(self.rte_solver, RTESolver):
@@ -47,5 +48,6 @@ class Solver:
                         raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
         add_parameter(self.rte_solver)
+        add_parameter(self.number_of_streams)
 
         return '\n'.join(parameters)

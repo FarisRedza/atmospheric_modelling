@@ -168,7 +168,8 @@ class DiffractionSim:
         elevations = elevations_full[mask]
 
         return DiffractionSimResult(
-            times=times_norm,
+            # times=times_norm,
+            times=times,
             transmissions=transmissions,
             zenith_offset=zenith_offset,
             elevations=elevations

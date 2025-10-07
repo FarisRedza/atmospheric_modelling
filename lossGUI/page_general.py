@@ -14,7 +14,6 @@ import matplotlib.figure
 import matplotlib.image
 import matplotlib.lines
 import mpl_toolkits.mplot3d.art3d
-import scipy.ndimage
 import numpy as np
 
 import widgets
@@ -107,7 +106,7 @@ class OrbitGroup(Adw.PreferencesGroup):
         self.ground_stations: list[GroundStation] = self.get_ground_stations()
         self.satellites: list[Satellite] = self.get_satellites()
 
-        self._timescale = 25
+        self._timescale = 10
 
         self.fov_circles: list[FOVCircle] = []
 
@@ -142,7 +141,7 @@ class OrbitGroup(Adw.PreferencesGroup):
             self.add_satellite_to_plot(
                 satellite=sat
             )
-        
+
         self.add_fov_circle(
             ground_station=self.get_ground_stations()[0],
             satellite=self.satellites[0]
@@ -213,67 +212,66 @@ class OrbitGroup(Adw.PreferencesGroup):
         self.add(child=ground_station_coords_row)
 
         self._last_update = time.time()
-
         self.start_animated_plot()
     
     def draw_earth(
         self,
         image_file: str,
-        mesh_resolution: int = 30,
-        texture_scale: float = 0.2
+        mesh_resolution: int = 30
     ) -> None:
-        texture = matplotlib.image.imread(fname=image_file)
-        texture_scaled = scipy.ndimage.zoom(
-            input=texture,
-            zoom=(texture_scale, texture_scale, 1)
-        )
+        texture = matplotlib.image.imread(image_file)
 
         theta = np.linspace(0, np.pi, mesh_resolution)
-        phi = np.linspace(0, 2*np.pi, mesh_resolution*2)
+        phi = np.linspace(0, 2*np.pi, mesh_resolution * 2)
         theta, phi = np.meshgrid(theta, phi)
 
-        R = 1
-        self._earth_x = R * np.sin(theta) * np.cos(phi)
-        self._earth_y = R * np.sin(theta) * np.sin(phi)
-        self._earth_z = R * np.cos(theta)
+        R = 1.0
+        x = R * np.sin(theta) * np.cos(phi)
+        y = R * np.sin(theta) * np.sin(phi)
+        z = R * np.cos(theta)
 
-        i = (theta / np.pi * (texture_scaled.shape[0]-1)).astype(int)
-        j = (((phi + np.pi) % (2*np.pi)) / (2*np.pi) * (texture_scaled.shape[1]-1)).astype(int)
-        self._earth_facecolors = texture_scaled[i, j] / 255.0
+        i = (theta / np.pi * (texture.shape[0] - 1)).astype(int)
+        j = (((phi + np.pi) % (2*np.pi)) / (2*np.pi) * (texture.shape[1]-1)).astype(int)
+        texture_rgb = texture[i, j] / 255.0
 
-        self._earth_verts = np.stack([self._earth_x, self._earth_y, self._earth_z], axis=-1)
+        self._earth_verts_flat = np.column_stack([x.ravel(), y.ravel(), z.ravel()])
+        self._texture_flat = texture_rgb.reshape(-1, 3)
 
-        self._faces_idx = []
-        for i in range(self._earth_verts.shape[0]-1):
-            for j in range(self._earth_verts.shape[1]-1):
-                self._faces_idx.append([(i, j), (i+1, j), (i+1, j+1), (i, j+1)])
+        n_theta, n_phi = x.shape
+        faces = []
+        facecolors = []
+        for a in range(n_theta - 1):
+            for b in range(n_phi - 1):
+                idx0 = a * n_phi + b
+                idx1 = idx0 + 1
+                idx2 = idx0 + n_phi
+                idx3 = idx2 + 1
+                faces.append([idx0, idx1, idx3, idx2])
+                facecolors.append(self._texture_flat[idx0])
+        self._faces_idx = np.array(faces)
+        self._facecolors = np.array(facecolors)
 
-        faces = [[self._earth_verts[i, j] for (i, j) in face] for face in self._faces_idx]
-        colors = [self._earth_facecolors[i, j] for (i, j) in [face[0] for face in self._faces_idx]]
-
+        faces_init = [self._earth_verts_flat[face] for face in self._faces_idx]
         self._earth_poly = mpl_toolkits.mplot3d.art3d.Poly3DCollection(
-            faces,
-            facecolors=colors,
-            linewidths=0
+            faces_init,
+            facecolors=self._facecolors,
+            linewidths=0,
+            antialiased=False
         )
         self.axes.add_collection3d(self._earth_poly)
 
-    def rotate_earth(self) -> None:
-        angle_rad = np.radians(self._earth_angle)
-        cos_a = np.cos(angle_rad)
-        sin_a = np.sin(angle_rad)
-
+    def rotate_earth(self, angle: float) -> None:
+        cos_a, sin_a = np.cos(angle), np.sin(angle)
         self._R = np.array([
             [cos_a, -sin_a, 0],
             [sin_a,  cos_a, 0],
             [0,      0,     1]
         ])
 
-        rotated_verts = self._earth_verts.reshape(-1, 3) @ self._R.T
-        rotated_verts = rotated_verts.reshape(self._earth_verts.shape)
+        rotated_flat = self._earth_verts_flat @ self._R.T
 
-        faces_rot = [[rotated_verts[i, j] for (i, j) in face] for face in self._faces_idx]
-        self._earth_poly.set_verts(faces_rot)
+        faces_rotated = [rotated_flat[face] for face in self._faces_idx]
+        self._earth_poly.set_verts(faces_rotated)
 
     def add_ground_station_to_plot(
             self,
@@ -289,11 +287,14 @@ class OrbitGroup(Adw.PreferencesGroup):
         ground_station._vec = np.array([x,y,z])
         ground_station._point, = self.axes.plot3D(
             [x], [y], [z],
+            label=ground_station.name,
             marker='o',
+            linestyle='',
             color=widgets.Colours.ORANGE.value,
             markersize=4,
             zorder=10
         )
+        # self.axes.legend(frameon=False)
 
     def add_satellite_to_plot(
             self,
@@ -323,7 +324,9 @@ class OrbitGroup(Adw.PreferencesGroup):
 
         satellite._point, = self.axes.plot3D(
             [sat_x], [sat_y], [sat_z],
-            marker='o',
+            label=satellite.name,
+            marker='D',
+            linestyle='',
             color=widgets.Colours.TEAL.value,
             markersize=4,
             zorder=20
@@ -334,6 +337,9 @@ class OrbitGroup(Adw.PreferencesGroup):
             ground_station: GroundStation,
             satellite: Satellite
     ) -> None:
+        if ground_station._vec is None or ground_station.min_elevation is None:
+            raise Exception
+
         gs_vec = ground_station._vec / np.linalg.norm(ground_station._vec)
         cone_angle = np.radians(90-ground_station.min_elevation)
         orbit_radius = (EARTH_RADIUS + satellite.altitude) / EARTH_RADIUS
@@ -385,6 +391,9 @@ class OrbitGroup(Adw.PreferencesGroup):
             gs._vec = np.array([x,y,z])
 
             rotated_point = np.dot(gs._vec, self._R.T)
+            if gs._point is None:
+                raise Exception
+
             gs._point.set_data([rotated_point[0]], [rotated_point[1]])
             gs._point.set_3d_properties([rotated_point[2]])
 
@@ -393,6 +402,9 @@ class OrbitGroup(Adw.PreferencesGroup):
             return
         
         for fc in self.fov_circles:
+            if fc.ground_station._vec is None or fc.ground_station.min_elevation is None:
+                raise Exception
+
             gs_vec = fc.ground_station._vec / np.linalg.norm(fc.ground_station._vec)
             cone_angle = np.radians(90-fc.ground_station.min_elevation)
             orbit_radius = (EARTH_RADIUS + fc.satellite.altitude) / EARTH_RADIUS
@@ -418,6 +430,9 @@ class OrbitGroup(Adw.PreferencesGroup):
             return
 
         for sat in self.satellites:
+            if sat._angle is None or sat._theta is None or sat._point is None or sat._orbit is None:
+                raise Exception
+
             angle_rad = np.radians(sat._angle)
             
             orbit_radius = (EARTH_RADIUS + sat.altitude) / EARTH_RADIUS
@@ -451,16 +466,19 @@ class OrbitGroup(Adw.PreferencesGroup):
             self._earth_angle = (self._earth_angle + earth_deg_per_sec * self._timescale * dt_scaled) % 360
             for sat in self.satellites:
                 sat_deg_per_sec = 360 / sat.period
+                if sat._angle is None:
+                    raise Exception
+
                 sat._angle = (sat._angle + sat_deg_per_sec * self._timescale * dt_scaled) % 360
 
-            self.rotate_earth()
+            self.rotate_earth(angle=self._earth_angle)
             self.update_ground_stations()
             self.update_satellites()
             self.update_fov_circles()
             self.canvas.draw_idle()
             return True
 
-        GLib.timeout_add(50, update)
+        GLib.timeout_add(100, update)
 
     def set_orbit_altitude(self, altitude: float | str) -> None:
         self.satellites[0].altitude = float(altitude)
@@ -614,7 +632,7 @@ class AddGroundStationDialog(Adw.Dialog):
     
     def get_gs_min_elevation(self) -> float:
         return self._gs_min_elevation
-    
+
     def on_add_ground_station(self) -> None:
         self.add_ground_station(
             name=self.get_gs_name(),
@@ -762,12 +780,14 @@ class ObjectGroup(Adw.PreferencesGroup):
         self.object_type = object_type
 
         for object in self.get_objects():
-            object_row = widgets.ButtonRow(
+            object_row = widgets.DoubleButtonRow(
                 title=object.name,
-                label='Remove',
-                icon_name='list-remove-symbolic',
-                callable=self.on_remove_object,
-                sensitive=False
+                label_1='Info',
+                icon_name_1='dialog-information-symbolic',
+                callable_1=self.on_object_info,
+                label_2='Remove',
+                icon_name_2='list-remove-symbolic',
+                callable_2=self.on_remove_object,
             )
             self.add(child=object_row)
 
@@ -798,6 +818,9 @@ class ObjectGroup(Adw.PreferencesGroup):
     def on_remove_object(self) -> None:
         pass
 
+    def on_object_info(self) -> None:
+        pass
+
 class GeneralPage(Adw.PreferencesPage):
     def __init__(self) -> None:
         super().__init__()
@@ -808,7 +831,22 @@ class GeneralPage(Adw.PreferencesPage):
             name='HOGS',
             latitude=55.9,
             longitude=3.32,
+            altitude=0.0,
             min_elevation=85.0
+        )
+        self.add_ground_station(
+            name='Ngari',
+            latitude=32,
+            longitude=80,
+            altitude=5.0,
+            min_elevation=10.0
+        )
+        self.add_ground_station(
+            name='Aristarchos',
+            latitude=37.59,
+            longitude=22.11,
+            altitude=2.34,
+            min_elevation=10.0
         )
         self.add_satellite(
             name='QEYSSat',
@@ -817,6 +855,13 @@ class GeneralPage(Adw.PreferencesPage):
             eccentricity=0.0,
             raan=167.4
         )
+        # self.add_satellite(
+        #     name='Micius',
+        #     altitude=500,
+        #     inclination=97.4,
+        #     eccentricity=0.0,
+        #     raan=0
+        # )
 
         self.diffraction_group = GeneralGroup(
             wavelength=785e-9,
@@ -860,6 +905,7 @@ class GeneralPage(Adw.PreferencesPage):
             name: str,
             latitude: float,
             longitude: float,
+            altitude: float,
             min_elevation: float
     ) -> None:
         if name is None:
@@ -888,7 +934,7 @@ class GeneralPage(Adw.PreferencesPage):
         if period is None:
             mu = 398600
             r = EARTH_RADIUS + altitude
-            period = 2*np.pi * np.sqrt(r**3 / mu)
+            period = float(2*np.pi * np.sqrt(r**3 / mu))
 
         sat = Satellite(
             name=name,

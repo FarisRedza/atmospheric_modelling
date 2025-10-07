@@ -37,11 +37,12 @@ class AerosolSpeciesLibrary(enum.Enum):
 class Aerosol:
     aerosol_default: bool = True
     aerosol_season: AerosolSeason | None = None
+    aerosol_set_tau_at_wvl: tuple[str, str] | None = None
+    aerosol_species_file: AerosolSpecies | None = None
+    aerosol_species_library: AerosolSpeciesLibrary | None = None
     aerosol_visibility: float | None = None
     aerosol_haze: AerosolHaze | None = None
     aerosol_vulcan: AerosolVulcan | None = None
-    aerosol_species_file: AerosolSpecies | None = None
-    aerosol_species_library: AerosolSpeciesLibrary | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.aerosol_default, bool):
@@ -78,23 +79,36 @@ class Aerosol:
                     case bool():
                         if parameter == True:
                             parameters.append(field_name)
+
                     case enum.Enum():
                         parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
+
                     case float() | int():
                         parameters.append(f'{field_name} {parameter}')
+
+                    case tuple():
+                        parameters.append(f'{field_name} {" ".join([(i) for i in parameter])}')
+                    
                     case _:
                         raise Exception(f'Unknown type {type(parameter)}: {parameter}')
 
         add_parameter(self.aerosol_default)
         add_parameter(self.aerosol_season)
-        add_parameter(self.aerosol_visibility)
-        add_parameter(self.aerosol_haze)
-        add_parameter(self.aerosol_vulcan)
+        add_parameter(self.aerosol_set_tau_at_wvl)
         add_parameter(
             parameter=self.aerosol_species_file,
             # prefix='../data/aerosol/OPAC/standard_aerosol_files/',
             # suffix='.dat'
         )
         add_parameter(self.aerosol_species_library)
+        add_parameter(self.aerosol_visibility)
+        add_parameter(self.aerosol_haze)
+        add_parameter(self.aerosol_vulcan)
 
         return '\n'.join(parameters)
+
+if __name__ == '__main__':
+    aerosol = Aerosol(
+        aerosol_set_tau_at_wvl=('550.0', '0.05')
+    )
+    print(aerosol.generate_uvspec_input())

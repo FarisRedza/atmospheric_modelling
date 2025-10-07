@@ -460,11 +460,13 @@ class GeometryGroup(Adw.PreferencesGroup):
 class SolverGroup(Adw.PreferencesGroup):
     def __init__(
             self,
-            rte_solver: libradtranpy.RTESolver
+            rte_solver: libradtranpy.RTESolver,
+            number_of_streams: typing.Optional[int]
     ) -> None:
         super().__init__(title='Solver')
 
         self._rte_solver = rte_solver
+        self._number_of_streams = number_of_streams
 
         solver_row = widgets.DropdownRow(
             callable=self.set_rte_solver,
@@ -474,15 +476,29 @@ class SolverGroup(Adw.PreferencesGroup):
         )
         self.add(child=solver_row)
 
+        streams_row = widgets.EntryRow(
+            callable=self.set_number_of_streams,
+            title='Number of streams',
+            value=self.get_number_of_streams()
+        )
+        self.add(child=streams_row)
+
     def set_rte_solver(self, rte_solver: libradtranpy.RTESolver) -> None:
         self._rte_solver = rte_solver
     
     def get_rte_solver(self) -> libradtranpy.RTESolver:
         return self._rte_solver
+    
+    def set_number_of_streams(self, streams: int | str) -> None:
+        self._number_of_streams = int(streams)
+    
+    def get_number_of_streams(self) -> typing.Optional[int]:
+        return self._number_of_streams
 
     def solver_settings(self) -> libradtranpy.Solver:
         settings = libradtranpy.Solver(
-            rte_solver=self.get_rte_solver()
+            rte_solver=self.get_rte_solver(),
+            number_of_streams=self.get_number_of_streams()
         )
         return settings
 
@@ -699,7 +715,7 @@ class LibRadtranPage(Adw.PreferencesPage):
         self.add(group=self.general_atm_group)
 
         self.mol_atm_group = MolAtmGroup(
-            atmosphere=libradtranpy.Atmosphere.USSTANDARD
+            atmosphere=libradtranpy.Atmosphere.US_STANDARD
         )
         self.add(group=self.mol_atm_group)
 
@@ -716,7 +732,8 @@ class LibRadtranPage(Adw.PreferencesPage):
         self.add(group=self.geometry_group)
 
         self.solver_group = SolverGroup(
-            rte_solver=libradtranpy.RTESolver.DISORT
+            rte_solver=libradtranpy.RTESolver.DISORT,
+            number_of_streams=None
         )
         self.add(group=self.solver_group)
 

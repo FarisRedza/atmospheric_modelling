@@ -1,7 +1,6 @@
 import dataclasses
 import enum
 import typing
-import datetime
 
 @dataclasses.dataclass
 class Geometry:
