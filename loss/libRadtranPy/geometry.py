@@ -51,6 +51,8 @@ class Geometry:
                     case bool():
                         if parameter == True:
                             parameters.append(field_name)
+                    case str():
+                        parameters.append(f'{field_name} {parameter}')
                     case enum.Enum():
                         parameters.append(f'{field_name} {prefix}{parameter.value}{suffix}')
                     case float() | int():

@@ -272,11 +272,13 @@ class GeneralAtmGroup(Adw.PreferencesGroup):
 class MolAtmGroup(Adw.PreferencesGroup):
     def __init__(
             self,
-            atmosphere: libradtranpy.Atmosphere
+            atmosphere: libradtranpy.Atmosphere,
+            mixing_ratio: typing.Optional[tuple[libradtranpy.Species, str]]
     ) -> None:
         super().__init__(title='Molecular Atmosphere')
 
         self._atmosphere = atmosphere
+        self._mixing_ratio = mixing_ratio
 
         source_row = widgets.DropdownRow(
             callable=self.set_atmosphere,
@@ -715,7 +717,8 @@ class LibRadtranPage(Adw.PreferencesPage):
         self.add(group=self.general_atm_group)
 
         self.mol_atm_group = MolAtmGroup(
-            atmosphere=libradtranpy.Atmosphere.US_STANDARD
+            atmosphere=libradtranpy.Atmosphere.US_STANDARD,
+            mixing_ratio=None
         )
         self.add(group=self.mol_atm_group)
 

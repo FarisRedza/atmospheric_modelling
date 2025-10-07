@@ -145,7 +145,7 @@ if __name__ == '__main__':
             # zout=libradtranpy.ZOut.TOA
         )
     )
-    fig, (axis_a, axis_b) = matplotlib.pyplot.subplots(
+    figure, (axis_a, axis_b) = matplotlib.pyplot.subplots(
         nrows=1,
         ncols=2,
         figsize=(12, 5)

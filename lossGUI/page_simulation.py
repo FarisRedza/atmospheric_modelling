@@ -587,15 +587,16 @@ class SimulationPage(Gtk.ScrolledWindow):
             atm_sim_result = atm_sim.run_transmission_against_elevation()
         else:
             atm_sim = None
+            atm_sim_result = None
 
         match plot_type:
             case PlotType.LOSS_TIME:
-                x=times
-                y = np.zeros(len(dif_sim_result.times))
+                x = times
+                y = np.zeros(len(dif_sim_result.transmissions))
 
                 if enable_diffraction:
                     y += -10*np.log10(dif_sim_result.transmissions)
-                if enable_atmospheric:
+                if enable_atmospheric and isinstance(atm_sim_result, libradtranpy.SimulationResult):
                     atm_interpolated = scipy.interpolate.interp1d(
                         x=atm_sim_result.elevations,
                         y=atm_sim_result.transmission_as_dB(),
@@ -603,14 +604,14 @@ class SimulationPage(Gtk.ScrolledWindow):
                     )
                     atm_interpolated_dB = atm_interpolated(dif_sim_result.elevations)
                     y += atm_interpolated_dB
-            
+
             case PlotType.TRANSMISSION_TIME:
-                x=times
+                x = times
                 y = np.zeros(len(dif_sim_result.times))
 
                 if enable_diffraction:
                     y += dif_sim_result.transmissions
-                if enable_atmospheric:
+                if enable_atmospheric and isinstance(atm_sim_result, libradtranpy.SimulationResult):
                     atm_interpolated = scipy.interpolate.interp1d(
                         x=atm_sim_result.elevations,
                         y=atm_sim_result.transmissions,
@@ -620,12 +621,12 @@ class SimulationPage(Gtk.ScrolledWindow):
                     y += atm_interpolated_loss
 
             case PlotType.LOSS_ANGLE:
-                x=dif_sim_result.elevations
+                x = dif_sim_result.elevations
                 y = np.zeros(len(dif_sim_result.elevations))
-                
+
                 if enable_diffraction:
                     y += -10*np.log10(dif_sim_result.transmissions)
-                if enable_atmospheric:
+                if enable_atmospheric and isinstance(atm_sim_result, libradtranpy.SimulationResult):
                     atm_interpolated = scipy.interpolate.interp1d(
                         x=atm_sim_result.elevations,
                         y=atm_sim_result.transmission_as_dB(),
@@ -635,12 +636,12 @@ class SimulationPage(Gtk.ScrolledWindow):
                     y += atm_interpolated_loss
 
             case PlotType.TRANSMISSION_ANGLE:
-                x=dif_sim_result.elevations
+                x = dif_sim_result.elevations
                 y = np.zeros(len(dif_sim_result.elevations))
-                
+
                 if enable_diffraction:
                     y += dif_sim_result.transmissions
-                if enable_atmospheric:
+                if enable_atmospheric and isinstance(atm_sim_result, libradtranpy.SimulationResult):
                     atm_interpolated = scipy.interpolate.interp1d(
                         x=atm_sim_result.elevations,
                         y=atm_sim_result.transmissions,
