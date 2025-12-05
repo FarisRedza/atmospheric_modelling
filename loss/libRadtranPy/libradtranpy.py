@@ -1,19 +1,22 @@
+import sys
 import dataclasses
 import subprocess
 import pathlib
 import math
+import shutil
 
-from .spectral import *
-from .general_atm import *
-from .mol_atm import *
-from .aerosol import *
-from .profile import *
-from .clouds import *
-from .surface import *
-from .solver import *
-from .monte_carlo import *
-from .geometry import *
-from .output import *
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
+from loss.libRadtranPy.spectral import *
+from loss.libRadtranPy.general_atm import *
+from loss.libRadtranPy.mol_atm import *
+from loss.libRadtranPy.aerosol import *
+from loss.libRadtranPy.profile import *
+from loss.libRadtranPy.clouds import *
+from loss.libRadtranPy.surface import *
+from loss.libRadtranPy.solver import *
+from loss.libRadtranPy.monte_carlo import *
+from loss.libRadtranPy.geometry import *
+from loss.libRadtranPy.output import *
 
 @dataclasses.dataclass
 class SimulationResult:
@@ -66,11 +69,15 @@ class Simulation:
         return '\n'.join(parameters)
 
     def run_uvscpec(self) -> str:
-        result = subprocess.run(
-            [str(self._libRadtran_dir.joinpath(
+        if shutil.which('uvspec'):
+            uvspec = str(shutil.which('uvspec'))
+        else:
+            uvspec = [str(self._libRadtran_dir.joinpath(
                 'bin',
                 'uvspec'
-            ))],
+            ))]
+        result = subprocess.run(
+            uvspec,
             input=self.generate_uvspec_input(),
             stdout=subprocess.PIPE,
             text=True,
