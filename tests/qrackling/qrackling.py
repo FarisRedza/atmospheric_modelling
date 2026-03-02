@@ -1,10 +1,13 @@
 import os
 import subprocess
+import pathlib
 
 def main():
     # simulation_file = 'qeyssat_test.json'
-    simulation_file = 'qeyssat_2035_direct_overpass.json'
-    run_qrackling(simulation_file=simulation_file)
+    sim_dir = pathlib.Path(__file__).parent.joinpath('simulations')
+    sim_file = 'qeyssat_downlink_beacon.json'
+    # sim_file = 'qeyssat_2035_direct_overpass.json'
+    run_qrackling(simulation_file=sim_file)
 
 def run_qrackling(simulation_file: str) -> None:
     qrackling_dir = 'tests/qrackling'
