@@ -797,8 +797,6 @@ def powers_akr(
         fig, ax = plt.subplots()
 
     ax.set_xlim(30,90)
-    # ax.set_xlabel(xlabel=r'$\phi_\text{max}$ (°)', fontsize=16)
-    # ax.set_ylabel(ylabel=r'Power (W)', fontsize=16)
 
     filtered = []
     for prof in loss_profiles:
@@ -886,8 +884,6 @@ def powers_skl(
         fig, ax = plt.subplots()
     
     ax.set_xlim(30,90)
-    # ax.set_xlabel(xlabel=r'$\phi_\text{max}$ (°)', fontsize=16)
-    # ax.set_ylabel(ylabel=r'Power (W)', fontsize=16)
     ax.invert_xaxis()
 
     filtered = []
@@ -997,8 +993,14 @@ def paper_fig_3():
         figsize=(pixel(842), pixel(595)),
         constrained_layout=True
     )
-    fig.supxlabel(t=r'$\phi_\text{max}$ (°)', fontsize=16)
-    fig.supylabel(t=r'Power (mW)', fontsize=16)
+    fig.supxlabel(
+        t=r'$\phi_\text{max}$ (°)',
+        fontsize=16
+    )
+    fig.supylabel(
+        t='Power (mW)',
+        fontsize=16
+    )
 
     powers_akr(
         loss_profiles=loss_profiles,
