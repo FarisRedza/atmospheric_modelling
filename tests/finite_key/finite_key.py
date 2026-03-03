@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.axes as axes
 import matplotlib.colors as colors
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import lim
 import neumann
@@ -20,7 +19,7 @@ import neumann
 params_no_fibre = [7.761328918344407, 7.542259886343475, 0.0335677812551474, 0.02531375770896907, 10826895.017621633, 4e-10]
 params_10km_fibre = [9.47893858965945, 9.89101987420694, 0.037228590019520497, 0.03834132110856429, 6135831.8248959305, 1e-09]
 
-max_workers = 14
+max_workers = 10
 
 @dataclasses.dataclass
 class LossProfile:
@@ -786,17 +785,21 @@ def _akr_worker(total_loss: float, angle: int, params: list[float], power: int):
         return angle, power, skl
     return None
 
-def powers_akr(
+def power_akr_max_elev(
         loss_profiles: list[LossProfile],
         params: list[float],
         max_elevation_range: range = range(30,91,1),
         power_range: np.ndarray = np.linspace(1,10,10),
-        ax: typing.Optional[axes.Axes] = None
+        ax: typing.Optional[axes.Axes] = None,
+        fontsize=16,
+        tick_fontsize=12
     ) -> None:
+
     if ax is None:
         fig, ax = plt.subplots()
 
     ax.set_xlim(30,90)
+    ax.grid(visible=True)
 
     filtered = []
     for prof in loss_profiles:
@@ -839,6 +842,7 @@ def powers_akr(
         linestyle='',
         color='red'
     )
+    ax.tick_params(labelsize=tick_fontsize)
 
     cb = ax.figure.colorbar(
         mappable=cs,
@@ -846,10 +850,11 @@ def powers_akr(
         location='top',
         orientation='horizontal',
     )
+    cb.ax.tick_params(labelsize=tick_fontsize)
     cb.ax.xaxis.set_ticks_position(position='top')
     cb.set_label(
         label='AKR (bits)',
-        fontsize=16
+        fontsize=fontsize
     )
     cb.ax.xaxis.set_label_position(position='top')
 
@@ -873,17 +878,20 @@ def _skl_worker(total_loss: float, angle: int, params: list[float], power: int):
         return angle, power, skl
     return None
 
-def powers_skl(
+def power_skl_max_elev(
         loss_profiles: list[LossProfile],
         params: list[float],
         max_elevation_range: range = range(30,91,1),
         power_range: np.ndarray = np.linspace(1,10,10),
-        ax: typing.Optional[axes.Axes] = None
+        ax: typing.Optional[axes.Axes] = None,
+        fontsize=16,
+        tick_fontsize=12
     ) -> None:
     if ax is None:
         fig, ax = plt.subplots()
     
     ax.set_xlim(30,90)
+    ax.grid(visible=True)
     ax.invert_xaxis()
 
     filtered = []
@@ -928,6 +936,7 @@ def powers_skl(
         linestyle='',
         color='red'
     )
+    ax.tick_params(labelsize=tick_fontsize)
 
     cb = ax.figure.colorbar(
         mappable=cs,
@@ -935,10 +944,11 @@ def powers_skl(
         location='top',
         orientation='horizontal',
     )
+    cb.ax.tick_params(labelsize=tick_fontsize)
     cb.ax.xaxis.set_ticks_position(position='top')
     cb.set_label(
         label='SKL (bits)',
-        fontsize=16
+        fontsize=fontsize
     )
     cb.ax.xaxis.set_label_position(position='top')
 
@@ -977,16 +987,22 @@ def paper_fig_2() -> None:
 
 def paper_fig_3():
     loss_profile_dir = pathlib.Path.home().joinpath(
-        'Heriot-Watt University Team Dropbox',
-        'RES_EPS_EMQL',
-        'projects',
-        'Optical ground station',
-        '__software__',
-        'finite_key',
+        # 'Heriot-Watt University Team Dropbox',
+        # 'RES_EPS_EMQL',
+        # 'projects',
+        # 'Optical ground station',
+        # '__software__',
+        # 'finite_key',
+        'Projects',
+        'Finite_key_data',
         '550000m_0m_0.25m'
     ).resolve()
     loss_profiles = get_loss_profiles(dir=loss_profile_dir)
     power_range = np.linspace(0.1, 10, 50)
+    max_elevation_range = range(30,151,1)
+
+    fontsize = 16
+    tick_fontsize = 14
 
     fig, ax = plt.subplots(
         nrows=1,ncols=2,
@@ -995,31 +1011,168 @@ def paper_fig_3():
     )
     fig.supxlabel(
         t=r'$\phi_\text{max}$ (°)',
-        fontsize=16
+        fontsize=fontsize
     )
     fig.supylabel(
         t='Power (mW)',
-        fontsize=16
+        fontsize=fontsize
     )
 
-    powers_akr(
+    power_akr_max_elev(
         loss_profiles=loss_profiles,
         params=params_10km_fibre,
-        max_elevation_range=range(30,151,1),
+        max_elevation_range=max_elevation_range,
         power_range=power_range,
-        ax=ax[0]
-        # ax=ax
+        ax=ax[0],
+        # ax=ax,
+        fontsize=fontsize,
+        tick_fontsize=tick_fontsize
     )
-    powers_skl(
+    power_skl_max_elev(
         loss_profiles=loss_profiles,
         params=params_10km_fibre,
-        max_elevation_range=range(30,151,1),
+        max_elevation_range=max_elevation_range,
         power_range=power_range,
-        ax=ax[1]
+        ax=ax[1],
+        fontsize=fontsize,
+        tick_fontsize=tick_fontsize
     )
-    fig.savefig('akr.png')
-    plt.show()
+    fig.savefig('akr_vs_skl_heatmap.pdf')
+    # plt.show()
+
+def _akr_dc_worker(total_loss: float, dc: int, params: list[float], power: int):
+    ps = params.copy()
+    ps[4] = params[4] * power
+
+    qber, qx, m = neumann.raw_overpass(ps, total_loss)
+    skl = (1-1.19*h(qber)-h(qx))/2 * m
+
+    if skl > 0:
+        return dc, power, skl
+    return None
+
+def power_akr_dc(
+        loss_profiles: list[LossProfile],
+        params: list[float],
+        max_elevation_range: range = range(30,91,1),
+        dc_range: np.ndarray = np.linspace(0,1250,5),
+        power_range: np.ndarray = np.linspace(1,10,10),
+        ax: typing.Optional[axes.Axes] = None,
+        fontsize=16,
+        tick_fontsize=12
+    ) -> None:
+
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    # ax.set_xlim(30,90)
+    ax.grid(visible=True)
+
+    filtered = []
+    for prof in loss_profiles:
+        angle = int(prof.name.split(' ')[-1].split('°')[0])
+        if angle in max_elevation_range:
+            filtered.append((prof.total_loss, angle))
+
+
+    jobs = [
+        (total_loss, angle, params, power)
+        for (total_loss, angle) in filtered
+        for power in power_range
+    ]
+
+    dcs, pwrs, skls = [], [], []
+    with ProcessPoolExecutor(max_workers=max_workers) as ex:
+        futures = [ex.submit(_akr_dc_worker, *job) for job in jobs]
+        for fut in as_completed(futures):
+            res = fut.result()
+            if res is None:
+                continue
+            dc, power, skl = res
+            dcs.append(dc)
+            pwrs.append(power)
+            skls.append(skl)
+
+    # ang_opt, pow_opt, akr_opt = optimal_power_curve(dcs, pwrs, skls)
+    cs = ax.tricontourf(
+        dcs,
+        pwrs,
+        skls,
+        levels=[10, 100, 1000, 5000, 10000, 18000, 20000],
+        norm=colors.LogNorm(),
+        cmap='Purples'
+    )
+    # ax.plot(
+    #     ang_opt,
+    #     pow_opt,
+    #     linewidth=2,
+    #     marker='.',
+    #     linestyle='',
+    #     color='red'
+    # )
+    ax.tick_params(labelsize=tick_fontsize)
+
+    cb = ax.figure.colorbar(
+        mappable=cs,
+        ax=ax,
+        location='top',
+        orientation='horizontal',
+    )
+    cb.ax.tick_params(labelsize=tick_fontsize)
+    cb.ax.xaxis.set_ticks_position(position='top')
+    cb.set_label(
+        label='AKR (bits)',
+        fontsize=fontsize
+    )
+    cb.ax.xaxis.set_label_position(position='top')
+
+def paper_fig_4() -> None:
+    loss_profile_dir = pathlib.Path.home().joinpath(
+        # 'Heriot-Watt University Team Dropbox',
+        # 'RES_EPS_EMQL',
+        # 'projects',
+        # 'Optical ground station',
+        # '__software__',
+        # 'finite_key',
+        'Projects',
+        'Finite_key_data',
+        '550000m_0m_0.25m'
+    ).resolve()
+    loss_profiles = get_loss_profiles(dir=loss_profile_dir)
+    power_range = np.linspace(0.1, 10, 5)
+    dc_range = np.linspace(0, 1250, 10)
+
+    fontsize = 16
+    tick_fontsize = 14
+
+    fig, ax = plt.subplots(
+        # nrows=1,ncols=2,
+        figsize=(pixel(842), pixel(595)),
+        constrained_layout=True
+    )
+    fig.supxlabel(
+        t='DC (cps)',
+        fontsize=fontsize
+    )
+    fig.supylabel(
+        t='Power (mW)',
+        fontsize=fontsize
+    )
+
+    power_akr_dc(
+        loss_profiles=loss_profiles,
+        params=params_10km_fibre,
+        dc_range=dc_range,
+        power_range=power_range,
+        # ax=ax[0],
+        ax=ax,
+        fontsize=fontsize,
+        tick_fontsize=tick_fontsize
+    )
+    fig.savefig('DC_akr_vs_skl.pdf')
+    # plt.show()
 
 if __name__ == '__main__':
     # paper_fig_2()
-    paper_fig_3()
+    # paper_fig_3()
+    paper_fig_4()
