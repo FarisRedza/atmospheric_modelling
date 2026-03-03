@@ -19,7 +19,7 @@ import neumann
 params_no_fibre = [7.761328918344407, 7.542259886343475, 0.0335677812551474, 0.02531375770896907, 10826895.017621633, 4e-10]
 params_10km_fibre = [9.47893858965945, 9.89101987420694, 0.037228590019520497, 0.03834132110856429, 6135831.8248959305, 1e-09]
 
-max_workers = 10
+max_workers = 8
 
 @dataclasses.dataclass
 class LossProfile:
@@ -273,7 +273,9 @@ def fig_4(
         max_elevation_range: range = range(30,91),
         ax: typing.Optional[axes.Axes] = None,
         xlim: typing.Optional[tuple[float, float]] = None,
-        xlabel: typing.Optional[str] = None
+        xlabel: typing.Optional[str] = None,
+        fontsize: int = 16,
+        tick_fontsize: int = 14
 ) -> None:
     '''
     Contour plot of channel loss as a function of maximum elevation angle
@@ -337,7 +339,7 @@ def fig_4(
     cbar = ax.figure.colorbar(mappable=filled_contour_set)
     cbar.set_label(
         label='Loss (dB)',
-        fontsize=16,
+        fontsize=fontsize,
     )
     cbar.ax.yaxis.set_major_formatter(
         ticker.FormatStrFormatter('%0.1f')
@@ -346,6 +348,7 @@ def fig_4(
         CS=contour_set,
         colors='white'
     )
+    ax.tick_params(labelsize=tick_fontsize)
 
 def fig_5(
         loss_profiles: list[LossProfile],
@@ -353,7 +356,9 @@ def fig_5(
         max_elevation_range: range = range(30,91),
         ax: typing.Optional[axes.Axes] = None,
         xlim: typing.Optional[tuple[float, float]] = None,
-        xlabel: typing.Optional[str] = None
+        xlabel: typing.Optional[str] = None,
+        fontsize: int = 16,
+        tick_fontsize: int = 14
 ) -> None:
     '''
     Contour plot of instantaneous QBER as a function of maximum elevation angle
@@ -432,6 +437,7 @@ def fig_5(
         CS=contour_set,
         colors='white'
     )
+    ax.tick_params(labelsize=tick_fontsize)
 
 def fig_6(
         loss_profiles: list[LossProfile],
@@ -774,7 +780,12 @@ def optimal_power_curve(angles, pwrs, values):
 
     return ang_sorted, opt_p, opt_v
 
-def _akr_worker(total_loss: float, angle: int, params: list[float], power: int):
+def _akr_worker(
+        total_loss: list[float],
+        angle: int,
+        params: list[float],
+        power: int
+):
     ps = params.copy()
     ps[4] = params[4] * power
 
@@ -858,7 +869,7 @@ def power_akr_max_elev(
     )
     cb.ax.xaxis.set_label_position(position='top')
 
-def _skl_worker(total_loss: float, angle: int, params: list[float], power: int):
+def _skl_worker(total_loss: list[float], angle: int, params: list[float], power: int):
     ps = params.copy()
     ps[4] = params[4] * power
 
@@ -952,16 +963,13 @@ def power_skl_max_elev(
     )
     cb.ax.xaxis.set_label_position(position='top')
 
-def paper_fig_2() -> None:
-    loss_profile_dir = pathlib.Path.home().joinpath(
-        'Heriot-Watt University Team Dropbox',
-        'RES_EPS_EMQL',
-        'projects',
-        'Optical ground station',
-        '__software__',
-        'finite_key',
-        'up_link_passes'
-    ).resolve()
+def paper_fig_2(
+        data_dir: pathlib.Path,
+        fontsize: int = 16,
+        tick_fontsize: int = 14,
+        filename: str = 'paper_fig_2.pdf'
+) -> None:
+    loss_profile_dir = data_dir.joinpath('up_link_passes').resolve()
 
     loss_profiles = get_loss_profiles(dir=loss_profile_dir)
 
@@ -982,21 +990,17 @@ def paper_fig_2() -> None:
         xlim=(-300,300),
         xlabel='Time (s)'
     )
-    fig.savefig(fname='overpasses.png')
+    fig.savefig(fname=filename)
     plt.show()
 
-def paper_fig_3():
-    loss_profile_dir = pathlib.Path.home().joinpath(
-        # 'Heriot-Watt University Team Dropbox',
-        # 'RES_EPS_EMQL',
-        # 'projects',
-        # 'Optical ground station',
-        # '__software__',
-        # 'finite_key',
-        'Projects',
-        'Finite_key_data',
-        '550000m_0m_0.25m'
-    ).resolve()
+def paper_fig_3(
+        data_dir: pathlib.Path,
+        fontsize: int = 16,
+        tick_fontsize: int = 14,
+        filename: str = 'paper_fig_3.pdf'
+) -> None:
+    loss_profile_dir = loss_profile_dir = data_dir.joinpath('550000m_0m_0.25m').resolve()
+
     loss_profiles = get_loss_profiles(dir=loss_profile_dir)
     power_range = np.linspace(0.1, 10, 50)
     max_elevation_range = range(30,151,1)
@@ -1017,6 +1021,7 @@ def paper_fig_3():
         t='Power, P (mW)',
         fontsize=fontsize
     )
+    ax[0].plot(90,6)
 
     power_akr_max_elev(
         loss_profiles=loss_profiles,
@@ -1037,7 +1042,7 @@ def paper_fig_3():
         fontsize=fontsize,
         tick_fontsize=tick_fontsize
     )
-    fig.savefig('akr_vs_skl_heatmap.pdf')
+    fig.savefig(fname=filename)
     # plt.show()
 
 def get_profile_from_angle(
@@ -1051,7 +1056,7 @@ def get_profile_from_angle(
     raise ValueError(f"No profile found for angle={angle}°")
 
 def _akr_dc_worker(
-        total_loss: float,
+        total_loss: list[float],
         dc_cps: float,
         params: list[float],
         power_mw: float,
@@ -1087,7 +1092,7 @@ def power_akr_dc(
         ax: typing.Optional[axes.Axes] = None,
         fontsize=16,
         tick_fontsize=12
-):
+) -> None:
     if ax is None:
         fig, ax = plt.subplots()
 
@@ -1126,15 +1131,6 @@ def power_akr_dc(
         norm=colors.LogNorm(),
         cmap='Blues'
     )
-    # ax.plot(
-    #     ang_opt,
-    #     pow_opt,
-    #     linewidth=2,
-    #     marker='.',
-    #     linestyle='',
-    #     color='red'
-    # )
-    # ax.tick_params(labelsize=tick_fontsize)
 
     cb = ax.figure.colorbar(
         mappable=cs,
@@ -1150,49 +1146,58 @@ def power_akr_dc(
     )
     cb.ax.xaxis.set_label_position(position='top')
 
-def paper_fig_4() -> None:
-    loss_profile_dir = pathlib.Path.home().joinpath(
-        'Heriot-Watt University Team Dropbox',
-        'RES_EPS_EMQL',
-        'projects',
-        'Optical ground station',
-        '__software__',
-        'finite_key',
-        # 'Projects',
-        # 'Finite_key_data',
-        '550000m_0m_0.25m'
-    ).resolve()
+def paper_fig_4(
+        data_dir: pathlib.Path,
+        fontsize: int = 16,
+        tick_fontsize: int = 14,
+        filename: str = 'paper_fig_4.pdf'
+) -> None:
+    loss_profile_dir = loss_profile_dir = data_dir.joinpath('550000m_0m_0.25m').resolve()
     loss_profiles = get_loss_profiles(dir=loss_profile_dir)
     power_range = np.linspace(0.1, 10, 5)
-    dc_range = np.linspace(0, 1250, 10)
-
-    fontsize = 16
-    tick_fontsize = 14
 
     loss_profiles = get_loss_profiles(dir=loss_profile_dir)
 
     prof = get_profile_from_angle(loss_profiles, angle=90)  # choose what you want
 
-    dc_range = np.linspace(200, 1300, 50)         # cps
-    power_range_mw = np.linspace(0.1, 10, 50)     # mW
-
-    fig, ax = plt.subplots(1, 2, figsize=(pixel(842), pixel(595)), constrained_layout=True)
-    fig.supxlabel('DC (cps)', fontsize=fontsize)
-    fig.supylabel('Power, P (mW)', fontsize=fontsize)
+    dc_range = np.linspace(200, 1300, 50)
+    fig, ax = plt.subplots(
+        # nrows=1, ncols=2,
+        figsize=(pixel(842), pixel(595)),
+        constrained_layout=True
+    )
+    fig.supxlabel(t='DC (cps)', fontsize=fontsize)
+    fig.supylabel(t='Power, P (mW)', fontsize=fontsize)
 
     power_akr_dc(
         loss_profile=prof,
         params=params_10km_fibre,
         dc_range=dc_range,
-        ax=ax[1],
+        power_range=power_range,
+        # ax=ax[1],
+        ax=ax,
         fontsize=fontsize,
         tick_fontsize=tick_fontsize
     )
+    plt.savefig(fname=filename)
     plt.show()
-    plt.savefig('DC_akr_vs_skl.pdf')
 
 
 if __name__ == '__main__':
-    # paper_fig_2()
-    # paper_fig_3()
-    paper_fig_4()
+    data_dir = pathlib.Path.home().joinpath(
+        # 'Heriot-Watt University Team Dropbox',
+        # 'RES_EPS_EMQL',
+        # 'projects',
+        # 'Optical ground station',
+        # '__software__',
+        # 'finite_key',
+        'Projects',
+        'Finite_key_data'
+    ).resolve()
+
+    fontsize = 16
+    tick_fontsize = 14
+
+    # paper_fig_2(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
+    # paper_fig_3(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
+    paper_fig_4(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
