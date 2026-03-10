@@ -333,7 +333,7 @@ def fig_4(
         X,
         Y,
         Z_loss,
-        levels=np.linspace(38,85,500),
+        levels=np.linspace(38,85,50),
         cmap='inferno_r'
     )
     cbar = ax.figure.colorbar(mappable=filled_contour_set)
@@ -975,7 +975,8 @@ def paper_fig_2(
 
     fig, ax = plt.subplots(
         nrows=2,ncols=1,
-        figsize=(pixel(725), pixel(564)),
+        # figsize=(pixel(725), pixel(564)),
+        dpi=300,
         constrained_layout=True
     )
     fig_4(
@@ -990,7 +991,7 @@ def paper_fig_2(
         xlim=(-300,300),
         xlabel='Time (s)'
     )
-    fig.savefig(fname=filename)
+    fig.savefig(fname=filename, dpi=300)
     plt.show()
 
 def paper_fig_3(
@@ -1010,7 +1011,8 @@ def paper_fig_3(
 
     fig, ax = plt.subplots(
         nrows=1,ncols=2,
-        figsize=(pixel(842), pixel(595)),
+        # figsize=(pixel(842), pixel(595)),
+        dpi=300,
         constrained_layout=True
     )
     fig.supxlabel(
@@ -1042,7 +1044,7 @@ def paper_fig_3(
         fontsize=fontsize,
         tick_fontsize=tick_fontsize
     )
-    fig.savefig(fname=filename)
+    fig.savefig(fname=filename, dpi=300)
     # plt.show()
 
 def get_profile_from_angle(
@@ -1163,7 +1165,8 @@ def paper_fig_4(
     dc_range = np.linspace(200, 1300, 50)
     fig, ax = plt.subplots(
         # nrows=1, ncols=2,
-        figsize=(pixel(842), pixel(595)),
+        # figsize=(pixel(842), pixel(595)),
+        dpi=300,
         constrained_layout=True
     )
     fig.supxlabel(t='DC (cps)', fontsize=fontsize)
@@ -1179,25 +1182,25 @@ def paper_fig_4(
         fontsize=fontsize,
         tick_fontsize=tick_fontsize
     )
-    plt.savefig(fname=filename)
+    plt.savefig(fname=filename, dpi=300)
     plt.show()
 
 
 if __name__ == '__main__':
     data_dir = pathlib.Path.home().joinpath(
-        # 'Heriot-Watt University Team Dropbox',
-        # 'RES_EPS_EMQL',
-        # 'projects',
-        # 'Optical ground station',
-        # '__software__',
-        # 'finite_key',
-        'Projects',
-        'Finite_key_data'
+        'Heriot-Watt University Team Dropbox',
+        'RES_EPS_EMQL',
+        'projects',
+        'Optical ground station',
+        '__software__',
+        'finite_key',
+        # 'Projects',
+        # 'Finite_key_data'
     ).resolve()
 
     fontsize = 16
     tick_fontsize = 14
 
     # paper_fig_2(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
-    # paper_fig_3(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
-    paper_fig_4(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
+    paper_fig_3(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
+    # paper_fig_4(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
