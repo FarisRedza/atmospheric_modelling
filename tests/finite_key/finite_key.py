@@ -780,7 +780,7 @@ def optimal_power_curve(angles, pwrs, values):
 
     return ang_sorted, opt_p, opt_v
 
-def _akr_worker(
+def _akl_worker(
         total_loss: list[float],
         angle: int,
         params: list[float],
@@ -796,7 +796,7 @@ def _akr_worker(
         return angle, power, skl
     return None
 
-def power_akr_max_elev(
+def power_akl_max_elev(
         loss_profiles: list[LossProfile],
         params: list[float],
         max_elevation_range: range = range(30,91,1),
@@ -826,7 +826,7 @@ def power_akr_max_elev(
 
     angles, pwrs, skls = [], [], []
     with ProcessPoolExecutor(max_workers=max_workers) as ex:
-        futures = [ex.submit(_akr_worker, *job) for job in jobs]
+        futures = [ex.submit(_akl_worker, *job) for job in jobs]
         for fut in as_completed(futures):
             res = fut.result()
             if res is None:
@@ -836,7 +836,7 @@ def power_akr_max_elev(
             pwrs.append(power)
             skls.append(skl)
 
-    ang_opt, pow_opt, akr_opt = optimal_power_curve(angles, pwrs, skls)
+    ang_opt, pow_opt, akl_opt = optimal_power_curve(angles, pwrs, skls)
     cs = ax.tricontourf(
         angles,
         pwrs,
@@ -854,6 +854,8 @@ def power_akr_max_elev(
         color='red'
     )
     ax.tick_params(labelsize=tick_fontsize)
+    ax.set_xticks(ticks=range(30, 91, 10))
+    ax.set_yticks(ticks=range(0, 11, 2))
 
     cb = ax.figure.colorbar(
         mappable=cs,
@@ -864,10 +866,33 @@ def power_akr_max_elev(
     cb.ax.tick_params(labelsize=tick_fontsize)
     cb.ax.xaxis.set_ticks_position(position='top')
     cb.set_label(
-        label='AKR (bits)',
+        label='AKL (bits)',
         fontsize=fontsize
     )
     cb.ax.xaxis.set_label_position(position='top')
+
+    last_x = ang_opt[-1]
+    last_y = pow_opt[-1]
+    ax.scatter(
+        last_x,
+        last_y,
+        linewidth=24,
+        marker='o',
+        linestyle='',
+        color='red',
+        clip_on=False,
+        zorder=10
+    )
+    ax.annotate(
+        r'$P^\text{finite}_\text{opt}$',
+        (last_x, last_y),
+        xytext=(-35, 5),
+        textcoords='offset points',
+        color='red',
+        fontsize=tick_fontsize,
+        ha='left',
+        va='bottom'
+    )
 
 def _skl_worker(total_loss: list[float], angle: int, params: list[float], power: int):
     ps = params.copy()
@@ -930,7 +955,7 @@ def power_skl_max_elev(
             pwrs.append(power)
             skls.append(skl)
     
-    ang_opt, pow_opt, akr_opt = optimal_power_curve(angles, pwrs, skls)
+    ang_opt, pow_opt, akl_opt = optimal_power_curve(angles, pwrs, skls)
     cs = ax.tricontourf(
         angles,
         pwrs,
@@ -948,6 +973,8 @@ def power_skl_max_elev(
         color='red'
     )
     ax.tick_params(labelsize=tick_fontsize)
+    ax.set_xticks(ticks=range(30, 91, 10))
+    ax.set_yticks(ticks=range(0, 11, 2))
 
     cb = ax.figure.colorbar(
         mappable=cs,
@@ -963,11 +990,35 @@ def power_skl_max_elev(
     )
     cb.ax.xaxis.set_label_position(position='top')
 
+    last_x = ang_opt[-1]
+    last_y = pow_opt[-1]
+    ax.scatter(
+        last_x,
+        last_y,
+        linewidth=24,
+        marker='o',
+        linestyle='',
+        color='red',
+        clip_on=False,
+        zorder=10
+    )
+    ax.annotate(
+        r'$P^\text{asym}_\text{opt}$',
+        (last_x, last_y),
+        xytext=(0, 5),
+        textcoords='offset points',
+        color='red',
+        fontsize=tick_fontsize,
+        ha='left',
+        va='bottom'
+    )
+
 def paper_fig_2(
         data_dir: pathlib.Path,
         fontsize: int = 16,
         tick_fontsize: int = 14,
-        filename: str = 'paper_fig_2.pdf'
+        filename: str = 'paper_fig_2.pdf',
+        dpi: int = 300
 ) -> None:
     loss_profile_dir = data_dir.joinpath('up_link_passes').resolve()
 
@@ -975,8 +1026,7 @@ def paper_fig_2(
 
     fig, ax = plt.subplots(
         nrows=2,ncols=1,
-        # figsize=(pixel(725), pixel(564)),
-        dpi=300,
+        dpi=dpi,
         constrained_layout=True
     )
     fig_4(
@@ -991,14 +1041,15 @@ def paper_fig_2(
         xlim=(-300,300),
         xlabel='Time (s)'
     )
-    fig.savefig(fname=filename, dpi=300)
+    fig.savefig(fname=filename, dpi=dpi)
     plt.show()
 
 def paper_fig_3(
         data_dir: pathlib.Path,
         fontsize: int = 16,
         tick_fontsize: int = 14,
-        filename: str = 'paper_fig_3.pdf'
+        filename: str = 'paper_fig_3.pdf',
+        dpi: int = 300
 ) -> None:
     loss_profile_dir = loss_profile_dir = data_dir.joinpath('550000m_0m_0.25m').resolve()
 
@@ -1011,8 +1062,7 @@ def paper_fig_3(
 
     fig, ax = plt.subplots(
         nrows=1,ncols=2,
-        # figsize=(pixel(842), pixel(595)),
-        dpi=300,
+        dpi=dpi,
         constrained_layout=True
     )
     fig.supxlabel(
@@ -1020,12 +1070,12 @@ def paper_fig_3(
         fontsize=fontsize
     )
     fig.supylabel(
-        t='Power, P (mW)',
+        t=r'Power, $P$ (mW)',
         fontsize=fontsize
     )
     ax[0].plot(90,6)
 
-    power_akr_max_elev(
+    power_akl_max_elev(
         loss_profiles=loss_profiles,
         params=params_10km_fibre,
         max_elevation_range=max_elevation_range,
@@ -1044,7 +1094,7 @@ def paper_fig_3(
         fontsize=fontsize,
         tick_fontsize=tick_fontsize
     )
-    fig.savefig(fname=filename, dpi=300)
+    fig.savefig(fname=filename, dpi=dpi)
     # plt.show()
 
 def get_profile_from_angle(
@@ -1055,9 +1105,9 @@ def get_profile_from_angle(
         a = int(prof.name.split(' ')[-1].split('°')[0])
         if a == angle:
             return prof
-    raise ValueError(f"No profile found for angle={angle}°")
+    raise ValueError(f'No profile found for angle={angle}°')
 
-def _akr_dc_worker(
+def _akl_dc_worker(
         total_loss: list[float],
         dc_cps: float,
         params: list[float],
@@ -1072,7 +1122,7 @@ def _akr_dc_worker(
         DC_A=int(dc_cps)
     )
 
-    akr = (1 - 1.19*h(qber) - h(qx)) / 2.0 * m
+    akl = (1 - 1.19*h(qber) - h(qx)) / 2.0 * m
 
     m_s = m / 2.0
     delta = (qber + qx) / 2.0
@@ -1084,9 +1134,9 @@ def _akr_dc_worker(
         f=1.19
     ) * m_s
 
-    return dc_cps, power_mw, (akr if akr > 0 else None), (skl if skl > 0 else None)
+    return dc_cps, power_mw, (akl if akl > 0 else None), (skl if skl > 0 else None)
 
-def power_akr_dc(
+def power_akl_dc(
         loss_profile: LossProfile,
         params: list[float],
         dc_range: np.ndarray = np.linspace(0, 100, 100),
@@ -1104,11 +1154,11 @@ def power_akr_dc(
         for p in power_range
     ]
 
-    dc_cps, pwrs, akrs = [], [], []
+    dc_cps, pwrs, akls = [], [], []
     with ProcessPoolExecutor(max_workers=max_workers) as ex:
         futures = [
             ex.submit(
-                _akr_dc_worker,
+                _akl_dc_worker,
                 total_loss,
                 dc,
                 params,
@@ -1120,15 +1170,15 @@ def power_akr_dc(
             res = fut.result()
             if res is None:
                 continue
-            dc_akr, power, akr, skl = res
-            dc_cps.append(dc_akr)
+            dc_akl, power, akl, skl = res
+            dc_cps.append(dc_akl)
             pwrs.append(power)
-            akrs.append(akr)
+            akls.append(akl)
     
     cs = ax.tricontourf(
         dc_cps,
         pwrs,
-        akrs,
+        akls,
         levels=[10, 100, 500,1000,3000,6000,10000],
         norm=colors.LogNorm(),
         cmap='Blues'
@@ -1148,59 +1198,151 @@ def power_akr_dc(
     )
     cb.ax.xaxis.set_label_position(position='top')
 
+def _skl_dc_worker(
+    total_loss: list[float],
+    dc: float,
+    params: list[float],
+    power: float,
+):
+    ps = params.copy()
+    ps[4] = params[4] * power
+
+    qber, qx, m = neumann.raw_overpass(
+        ps,
+        total_loss,
+        DC_A=dc,
+        DC_B=dc,
+    )
+
+    m /= 2.0
+    delta = (qber + qx) / 2.0
+
+    skl_frac = lim.smart_optimise(
+        m=m,
+        delta=delta,
+        eps_qkd=1e-6,
+        t=math.log2(10**8),
+        f=1.19,
+    )
+    skl = skl_frac * m
+
+    if np.isfinite(skl) and skl > 0:
+        return dc, power, skl
+    return None
+
+def power_skl_dark_counts(
+    loss_profile: LossProfile,
+    params: list[float],
+    dc_range: np.ndarray = np.linspace(200, 1300, 40),
+    power_range: np.ndarray = np.linspace(0.1, 10, 50),
+    ax: typing.Optional[axes.Axes] = None,
+    fontsize: int = 16,
+    tick_fontsize: int = 12,
+) -> None:
+    if ax is None:
+        fig, ax = plt.subplots()
+    
+    jobs = [
+        (loss_profile.total_loss, dc, params, power)
+        for dc in dc_range
+        for power in power_range
+    ]
+
+    dcs, pwrs, skls = [], [], []
+    with ProcessPoolExecutor(max_workers=max_workers) as ex:
+        futures = [ex.submit(_skl_dc_worker, *job) for job in jobs]
+        for fut in as_completed(futures):
+            res = fut.result()
+            if res is None:
+                continue
+            dc, power, skl = res
+            dcs.append(dc)
+            pwrs.append(power)
+            skls.append(skl)
+
+    cs = ax.tricontourf(
+        dcs,
+        pwrs,
+        skls,
+        levels=[10, 100, 500,1000,3000,6000,10000],
+        norm=colors.LogNorm(vmin=1e2, vmax=1e5),
+        cmap='Blues',
+    )
+
+    ax.set_xlim(float(np.min(dc_range)), float(np.max(dc_range)))
+    ax.set_ylim(float(np.min(power_range)), float(np.max(power_range)))
+    ax.invert_xaxis()
+    ax.grid(True)
+    ax.tick_params(labelsize=tick_fontsize)
+
+    cb = ax.figure.colorbar(
+        mappable=cs,
+        ax=ax,
+        location='top',
+        orientation='horizontal',
+    )
+    cb.ax.tick_params(labelsize=tick_fontsize)
+    cb.ax.xaxis.set_ticks_position('top')
+    cb.ax.xaxis.set_label_position('top')
+    cb.set_label('SKL (bits)', fontsize=fontsize)
+
 def paper_fig_4(
         data_dir: pathlib.Path,
         fontsize: int = 16,
         tick_fontsize: int = 14,
-        filename: str = 'paper_fig_4.pdf'
+        filename: str = 'paper_fig_4.pdf',
+        dpi: int = 300
 ) -> None:
     loss_profile_dir = loss_profile_dir = data_dir.joinpath('550000m_0m_0.25m').resolve()
     loss_profiles = get_loss_profiles(dir=loss_profile_dir)
+
+    loss_profile = get_loss_profile(
+        max_elevation=90,
+        loss_profiles=loss_profiles
+    )
+
+    dc_range = np.linspace(250, 1250)
     power_range = np.linspace(0.1, 10, 5)
 
-    loss_profiles = get_loss_profiles(dir=loss_profile_dir)
-
-    prof = get_profile_from_angle(loss_profiles, angle=90)  # choose what you want
-
-    dc_range = np.linspace(200, 1300, 50)
     fig, ax = plt.subplots(
         # nrows=1, ncols=2,
-        # figsize=(pixel(842), pixel(595)),
-        dpi=300,
+        dpi=dpi,
         constrained_layout=True
     )
-    fig.supxlabel(t='DC (cps)', fontsize=fontsize)
-    fig.supylabel(t='Power, P (mW)', fontsize=fontsize)
 
-    power_akr_dc(
-        loss_profile=prof,
+    fig.supxlabel('DC (cps)', fontsize=fontsize)
+    fig.supylabel(r'Power, $P$ (mW)', fontsize=fontsize)
+
+    power_skl_dark_counts(
+        loss_profile=loss_profile,
         params=params_10km_fibre,
         dc_range=dc_range,
         power_range=power_range,
         # ax=ax[1],
         ax=ax,
         fontsize=fontsize,
-        tick_fontsize=tick_fontsize
+        tick_fontsize=tick_fontsize,
     )
-    plt.savefig(fname=filename, dpi=300)
-    plt.show()
+
+    fig.savefig(fname=filename, dpi=dpi)
 
 
 if __name__ == '__main__':
     data_dir = pathlib.Path.home().joinpath(
-        'Heriot-Watt University Team Dropbox',
-        'RES_EPS_EMQL',
-        'projects',
-        'Optical ground station',
-        '__software__',
-        'finite_key',
-        # 'Projects',
-        # 'Finite_key_data'
+        # 'Heriot-Watt University Team Dropbox',
+        # 'RES_EPS_EMQL',
+        # 'projects',
+        # 'Optical ground station',
+        # '__software__',
+        # 'finite_key',
+        'Projects',
+        'Finite_key_data'
     ).resolve()
 
     fontsize = 16
     tick_fontsize = 14
+    dpi = 300
 
-    # paper_fig_2(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
-    paper_fig_3(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
-    # paper_fig_4(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize)
+    # paper_fig_2(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize, dpi=dpi)
+    paper_fig_3(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize, dpi=dpi)
+    # paper_fig_4(data_dir=data_dir, fontsize=fontsize, tick_fontsize=tick_fontsize, dpi=dpi)
